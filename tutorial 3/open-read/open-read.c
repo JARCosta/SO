@@ -22,7 +22,8 @@ int main(int argc, char *argv[])
     * - O_RDONLY: open the file for reading
     *
     */
-   int fd = open("test.txt", O_RDONLY);
+
+   FILE* fd = fopen("test.txt", "r");
    if (fd < 0){
       printf("open error: %s\n", strerror(errno));
       return -1;
@@ -32,7 +33,10 @@ int main(int argc, char *argv[])
    memset(buffer,0,sizeof(buffer));
 
    /* read the contents of the file */
-   int bytes_read = read(fd, buffer, sizeof(buffer));
+   //int bytes_read = read(fd, buffer, sizeof(buffer));
+   int bytes_read = fread(buffer,1,sizeof(buffer)-1,fd);
+   buffer[sizeof(buffer)-1] = '\0';
+
    if (bytes_read < 0){
       printf("read error: %s\n", strerror(errno));
       return -1;
@@ -40,8 +44,16 @@ int main(int argc, char *argv[])
 
    printf("%s",buffer);
 
+   while(bytes_read >= sizeof(buffer)-1){
+      bytes_read = fread(buffer,1,sizeof(buffer)-1,fd);
+      buffer[sizeof(buffer)-1] = '\0';
+      printf("%s",buffer);
+      printf("%d",bytes_read);
+   }
+   
+
    /* close the file */
-   close(fd);
+   fclose(fd);
 
    return 0;
 }
