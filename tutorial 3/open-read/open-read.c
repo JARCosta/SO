@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
       bytes_read = fread(buffer,1,sizeof(buffer)-1,fd);
       buffer[sizeof(buffer)-1] = '\0';
       printf("%s",buffer);
-      printf("%d",bytes_read);
+      printf("%d\n",bytes_read);
    }
    
 

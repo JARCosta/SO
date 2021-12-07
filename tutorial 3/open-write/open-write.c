@@ -26,7 +26,9 @@ int main(int argc, char *argv[])
     * - S_IRUSR: reading, user
     * - S_IWUSR: writting, user
     */
-   int fd = open("test.txt", O_CREAT | O_TRUNC | O_WRONLY , S_IRUSR | S_IWUSR);
+   
+   //int fd = open("test.txt", O_CREAT | O_TRUNC | O_WRONLY , S_IRUSR | S_IWUSR);
+   FILE* fd = fopen("test.txt", "w");
    if (fd < 0){
       printf("open error: %s\n", strerror(errno));
       return -1;
@@ -35,14 +37,16 @@ int main(int argc, char *argv[])
    char buffer[] = "Hello World!\n";
 
    /* write a string to the file */
-   int bytes_written = write(fd, buffer, strlen(buffer));
+   //int bytes_written = write(fd, buffer, strlen(buffer));
+   int bytes_written = fwrite(buffer,sizeof(buffer),1,fd);
+   
    if (bytes_written < 0){
       printf("write error: %s\n", strerror(errno));
       return -1;
    }
 
    /* close the file */
-   close(fd);
+   fclose(fd);
 
    return 0;
 }
