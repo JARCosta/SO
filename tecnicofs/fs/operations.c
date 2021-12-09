@@ -183,30 +183,26 @@ int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
 
    char buffer[128];
    memset(buffer,0,sizeof(buffer));
-    int srcFile;
-    int dstFile;
+
+    long int bytes_read;
+    int srcFile, dstFile;
 
     if(tfs_lookup(source_path)!= 0)
         return -1;
-    
-    // read source file to buffer
-    srcFile = tfs_read(tfs_open(source_path, 0), buffer, sizeof(buffer));
-    // open or create destination file
     if (tfs_lookup(dest_path) != 0){
-        int aaa = tfs_open(dest_path, TFS_O_CREAT);
+        dstFile = tfs_open(dest_path, TFS_O_CREAT);
     }
-    dstFile = tfs_write(tfs_open(dest_path,TFS_O_TRUNC), buffer, sizeof(buffer));
+    srcFile = tfs_open(source_path, 0);
+    dstFile = tfs_open(dest_path,TFS_O_TRUNC);
+
+    do{
+    bytes_read = tfs_read(srcFile, buffer, sizeof(buffer));
+    // open or create destination file
+    tfs_write(dstFile, buffer, sizeof(buffer));
+    // read source file to buffer
+    } while(bytes_read >= sizeof(buffer)-1);
     
     tfs_close(srcFile);
     tfs_close(dstFile);
     return 0;
-    // find file in srcPath
-    // read content
-    // find file in dstPath
-    // if failed to find any Path, return -1;
-
-    // if no file in dstPath to copy to, create
-    // if file in dstPath but has content, override
-
-    // return 0;
 }

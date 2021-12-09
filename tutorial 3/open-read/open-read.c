@@ -34,22 +34,24 @@ int main(int argc, char *argv[])
 
    /* read the contents of the file */
    //int bytes_read = read(fd, buffer, sizeof(buffer));
-   int bytes_read = fread(buffer,1,sizeof(buffer)-1,fd);
-   buffer[sizeof(buffer)-1] = '\0';
+   int bytes_read;
+   
+   
 
-   if (bytes_read < 0){
-      printf("read error: %s\n", strerror(errno));
-      return -1;
-   }
-
-   printf("%s",buffer);
-
-   while(bytes_read >= sizeof(buffer)-1){
+   printf("%s",buffer);   
+   
+   do{
       bytes_read = fread(buffer,1,sizeof(buffer)-1,fd);
-      buffer[sizeof(buffer)-1] = '\0';
+      buffer[bytes_read] = '\0';
       printf("%s",buffer);
-      printf("%d\n",bytes_read);
+      //printf("%d",bytes_read);
+
+      if (bytes_read < 0){
+         printf("read error: %s\n", strerror(errno));
+         return -1;
+      }
    }
+   while(bytes_read >= sizeof(buffer)-1);
    
 
    /* close the file */
