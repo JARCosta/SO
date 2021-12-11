@@ -211,11 +211,12 @@ int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
 
     do{
         bytes_read = tfs_read(srcFile, buffer, sizeof(buffer) - 1);
-        buffer[bytes_read] = '\0';
-        bytes_written = tfs_write(dstFile, buffer, (size_t)bytes_read);
+        FILE* fd = fopen(dest_path,"w");
+        bytes_written = (long int)fwrite(buffer,1,(size_t)bytes_read,fd);
+        //bytes_written = tfs_write(dstFile, buffer, (size_t)bytes_read);
         if(bytes_read != bytes_written){
-            //printf("%ld %ld", bytes_read, bytes_written);
-            return -1;
+            printf("%ld %ld", bytes_read, bytes_written);
+            return -2;
         }
     } while(bytes_read >= sizeof(buffer)-1);
     
