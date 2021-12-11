@@ -115,7 +115,18 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
         to_write = BLOCK_SIZE - file->of_offset;
     }
 
-    if (to_write > 0) {
+//    |Block 1|Block 2| 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | Table 1 |
+//    | inode1| inode2|...|   |   |   |   |   |   |    | inode 11|
+//    |<-------------------tfs_write------------------>|
+
+//      inode 11:
+//    |Index|Block|
+//    |  0  |#REF |
+//    |  1  | ... |
+//    | ... | ... |
+
+
+    if (to_write > 0 /* && number of inodes used by this file <=10 */) {
         if (inode->i_size == 0) {
             /* If empty file, allocate new block */
             inode->i_data_block = data_block_alloc();
@@ -135,7 +146,9 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
         if (file->of_offset > inode->i_size) {
             inode->i_size = file->of_offset;
         }
-    }
+    }/* else ( if this file occupies more than 10 blocks ){
+----    create table of block for this inode ?
+----} */
 
     return (ssize_t)to_write;
 }
