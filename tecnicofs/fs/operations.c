@@ -57,7 +57,7 @@ int tfs_open(char const *name, int flags) {
         /* Trucate (if requested) */
         if (flags & TFS_O_TRUNC) {
             if (inode->i_size > 0) {
-                if (data_block_free(inode->i_data_block) == -1) {
+                if (data_block_free(inode->i_data_block[0]) == -1) {
                     return -1;
                 }
                 inode->i_size = 0;
@@ -116,23 +116,27 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     }
 
 //    |Block 1|Block 2| 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | Table 1 |
-//    | inode1| inode2|...|   |   |   |   |   |   |    | inode 11|
+//    | inode1| inode2|...|   |   |   |   |   |   |    | inode 11|    1 file ()
 //    |<-------------------tfs_write------------------>|
 
-//      inode 11:
+//    | Block 1| Block 2| 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | Table 1 |    1 inode (1 list of data blocks)
+//    |inode[0]|inode[1]|...|   |   |   |   |   |   |    |inode[10]|    
+//    |<-------------------tfs_write------------------>|
+
+//      inode[10]:
 //    |Index|Block|
-//    |  0  |#REF |
-//    |  1  | ... |
+//    |  0  |#REF |  #REF : ????
+//    |  1  |#REF |
 //    | ... | ... |
 
 
     if (to_write > 0 /* && number of inodes used by this file <=10 */) {
         if (inode->i_size == 0) {
             /* If empty file, allocate new block */
-            inode->i_data_block = data_block_alloc();
+            inode->i_data_block[0] = data_block_alloc();
         }
 
-        void *block = data_block_get(inode->i_data_block);
+        void *block = data_block_get(inode->i_data_block[0]);
         if (block == NULL) {
             return -1;
         }
@@ -146,7 +150,8 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
         if (file->of_offset > inode->i_size) {
             inode->i_size = file->of_offset;
         }
-    }/* else ( if this file occupies more than 10 blocks ){
+    }
+  /*else ( if this file occupies more than 10 blocks ){
 ----    create table of block for this inode ?
 ----} */
 
