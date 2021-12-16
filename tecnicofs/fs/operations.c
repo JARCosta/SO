@@ -188,16 +188,21 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     }
 
 // Goaum
-    int read = 0;
-    int blockIndex = 0;
+    size_t read = 0;
+    int blockIndex = (int)(file->of_offset/BLOCK_SIZE);
     while (read < inode -> i_size && read < len ){
+        //int blockIndex = (int)(inode->i_size / BLOCK_SIZE);
         void *block = data_block_get(inode->i_data_block[blockIndex]);
+
+        //void *block = data_block_get(inode->i_data_block[blockIndex]);
+        //void *block = inode->i_data_block[blockIndex];
         if (block == NULL) break;
         if(to_read >= BLOCK_SIZE){
             memcpy(buffer, block + file->of_offset, to_read);
             blockIndex++;
             read += BLOCK_SIZE;
             file->of_offset += read;
+            buffer += BLOCK_SIZE;
         } else{
             memcpy(buffer, block + file->of_offset, to_read);
             read += to_read;
