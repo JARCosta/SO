@@ -130,12 +130,14 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             inode -> i_size += written;
             file -> of_offset = 0;//+= written;
             reallyWritten += written;
+            buffer += written;
         }
         else {
             memcpy(block + file->of_offset, buffer, to_write);
             inode -> i_size += to_write;
             file -> of_offset += to_write;
             reallyWritten += to_write;
+            break;
         }
     }
     return reallyWritten;
