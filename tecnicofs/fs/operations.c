@@ -128,7 +128,7 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             to_write -= written;
             memcpy(block + file->of_offset, buffer, written);
             inode -> i_size += written;
-            file -> of_offset = 0;//+= written;
+            file -> of_offset = 0;
             reallyWritten += written;
             buffer += written;
         }
@@ -191,7 +191,24 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         return -1;
     }
 
-    if (to_read > 0) {
+    int i = 0;
+
+    while(to_read > 0){
+        void *block = data_block_get(inode->i_data_block[i]);
+        if (block == NULL) {
+            break;
+            //return -1;
+        }
+
+        //Perform the actual read
+        memcpy(buffer, block + file->of_offset, to_read);
+        //The offset associated with the file handle is
+        //incremented accordingly
+        file->of_offset += to_read;
+        buffer += to_read;
+        i++;
+    }
+    /*if (to_read > 0) {
         void *block = data_block_get(inode->i_data_block);
         if (block == NULL) {
             return -1;
@@ -202,7 +219,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         //The offset associated with the file handle is
         //incremented accordingly
         file->of_offset += to_read;
-    }
+    }*/
 
     return (ssize_t)to_read;
 }
