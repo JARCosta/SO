@@ -193,7 +193,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     while (read < inode -> i_size && read < len ){
         //int blockIndex = (int)(inode->i_size / BLOCK_SIZE);
         void *block = data_block_get(inode->i_data_block[blockIndex]);
-
+        // aaaa
         //void *block = data_block_get(inode->i_data_block[blockIndex]);
         //void *block = inode->i_data_block[blockIndex];
         if (block == NULL) break;
