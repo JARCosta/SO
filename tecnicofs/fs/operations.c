@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-//"picha"
 
 int tfs_init() {
     state_init();
