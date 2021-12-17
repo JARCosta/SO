@@ -104,7 +104,7 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     open_file_entry_t *file = get_open_file_entry(fhandle);
     if (file == NULL) {
         return -1;
-    }
+    }//
 
     /* From the open file table entry, we get the inode */
     inode_t *inode = inode_get(file->of_inumber);
@@ -133,7 +133,6 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, written);
             to_write -= written;
             inode -> i_size += written;
-            file -> of_offset = 0;
             reallyWritten += written;
             buffer += written;
             blockIndex++;
@@ -141,7 +140,6 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
         else {
             memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, to_write);
             inode -> i_size += to_write;
-            file -> of_offset += to_write;
             reallyWritten += to_write;
             break;
         }
@@ -214,15 +212,15 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
             memcpy(buffer, block + file->of_offset, to_read);
             buffer += BLOCK_SIZE;
             read += BLOCK_SIZE;
-            printf("buffer: %p\n", buffer);
+            //printf("buffer: %p\n", buffer);
             printf("reading block[%d]: %d\n",blockIndex, (int)read);
             to_read -= BLOCK_SIZE;
-            file->of_offset += BLOCK_SIZE;
+            //file->of_offset += BLOCK_SIZE;
             blockIndex++;
         } else{
             memcpy(buffer, block + file->of_offset, to_read);
             read += to_read;
-            file->of_offset += read;
+            //file->of_offset += read;
             to_read = 0;
             printf("reading block[%d]: %d\n",blockIndex, (int)read);
             break;
