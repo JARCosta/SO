@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+//"ola"
+
 int tfs_init() {
     state_init();
 
