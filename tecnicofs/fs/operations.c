@@ -148,6 +148,8 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             to_write -= to_write;
         }
     }
+    return (ssize_t)wrote;
+}
     /*
     while(to_write > 0){
         void *block = data_block_get(inode->i_data_block[blockIndex]);
@@ -174,9 +176,9 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             break;
         }
     }
-    */
     return (ssize_t)wrote;
 }
+    */
 
 /*
     if (to_write > 0 ) {
@@ -235,16 +237,15 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         void *block = data_block_get(inode->i_data_block[blockIndex]);
         if(file->of_offset/BLOCK_SIZE < (file->of_offset + to_read) / BLOCK_SIZE){
             size_t nextBlock = BLOCK_SIZE - (file->of_offset % BLOCK_SIZE);
-            memcpy(buffer, block + file->of_offset, nextBlock);
-            printf("block: %d reading: %d from:%d to: %d\n",blockIndex, (int)nextBlock,(int)file->of_offset,(int)(file->of_offset+nextBlock));
+            memcpy(buffer, block + (file->of_offset%BLOCK_SIZE), nextBlock);
+            printf("block: %d reading: %d from: %d to: %d\n",blockIndex, (int)nextBlock,(int)file->of_offset,(int)(file->of_offset+nextBlock));
             read += nextBlock;
             buffer += nextBlock;
             file->of_offset += nextBlock;
             to_read -= nextBlock;
             blockIndex++;
-            
         } else{
-            memcpy(buffer, block + file->of_offset, to_read);
+            memcpy(buffer, block + (file->of_offset%BLOCK_SIZE), to_read);
             printf("block: %d reading: %d from: %d to: %d\n",blockIndex, (int)to_read,(int)file->of_offset,(int)(file->of_offset+to_read));
             read += to_read;
             buffer += to_read;
@@ -252,7 +253,8 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
             to_read -= to_read;
         }
     }
-    
+    return (ssize_t)read;   
+}
 /*
     while(to_read > 0){
     //while (read < inode -> i_size && read < len ){
@@ -284,9 +286,10 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
             break;
         }
     }
-*/
     buffer -= read;
     return (ssize_t)read;
+}
+*/
 
 /*  stor:
     if (to_read > 0) {
@@ -301,10 +304,10 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         //incremented accordingly
         file->of_offset += to_read;
     }
-*/
-
     return (ssize_t)to_read;
 }
+*/
+
 
 int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
 
