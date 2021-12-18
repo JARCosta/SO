@@ -207,22 +207,24 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
             printf("ERROR BLOCK %d IS NULL\n", blockIndex);
             break;
         }
-
+        
         if(to_read >= BLOCK_SIZE){
-            memcpy(buffer, block + file->of_offset, to_read);
+            size_t reading = to_read % BLOCK_SIZE;
+            memcpy(buffer, block + file->of_offset, reading);
             buffer += BLOCK_SIZE;
             read += BLOCK_SIZE;
-            //printf("buffer: %p\n", buffer);
-            printf("reading block[%d]: %d\n",blockIndex, (int)read);
+            //printf("buffer: %p\n", buffer);a
+            printf("block: %d reading: %d\n",blockIndex, (int)read);
             to_read -= BLOCK_SIZE;
-            //file->of_offset += BLOCK_SIZE;
+            file->of_offset += BLOCK_SIZE;
             blockIndex++;
         } else{
             memcpy(buffer, block + file->of_offset, to_read);
             read += to_read;
-            //file->of_offset += read;
+            file->of_offset += read;
+            printf("offset: %ld\n",file->of_offset);
             to_read = 0;
-            printf("reading block[%d]: %d\n",blockIndex, (int)read);
+            printf("block: %d reading: %d\n",blockIndex, (int)read);
             break;
         }
     }
