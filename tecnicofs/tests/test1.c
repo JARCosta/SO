@@ -6,7 +6,7 @@
 
 int main() {
 
-    char *str = "11111111222222223333333344444444555555556666666677777777888888881111111122222222333333334444444455555555666666667777777788888888";
+    char *str = "11111111222222223333333344444444555555556666666677777777888888888888888877777777666666665555555544444444333333332222222211111111111111112222222233333333444444445555555566666666777777778888888888888888777777776666666655555555";
     char *path = "/f1";
     char buffer[SIZE+1];
 
@@ -30,7 +30,7 @@ int main() {
     while(i < strlen(str)/SIZE){
         r = tfs_read(f, buffer, sizeof(buffer) - 1);
         buffer[SIZE] = '\0';
-        printf("len(buffer): %ld len(str): %ld\n", strlen(buffer), strlen(str));
+        //printf("len(buffer): %ld len(str): %ld\n", strlen(buffer), strlen(str));
         printf("%s\n\n",(char*)buffer);
         i++;
     }
