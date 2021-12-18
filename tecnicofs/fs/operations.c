@@ -105,6 +105,7 @@ void *getBlock(inode_t *inode,int blockIndex){
         void *block = data_block_get(inode->i_data_block[10]);
         int aaa;
         memcpy(&aaa, block + blockIndex, 1);
+        return data_block_get(aaa);
     } else{
         return data_block_get(inode->i_data_block[blockIndex]);
     } 
