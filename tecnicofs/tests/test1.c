@@ -25,6 +25,7 @@ int main() {
     assert(f != -1);
 
     r = tfs_read(f, buffer, sizeof(buffer) - 1);
+    assert(r == strlen(str));
     buffer[r] = '\0';
     //printf("len(buffer): %ld len(str): %ld\n", strlen(buffer), strlen(str));
     //printf("%s\n",(char*)buffer);
