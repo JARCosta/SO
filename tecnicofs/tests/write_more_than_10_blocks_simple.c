@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define COUNT 80
+#define COUNT 41
 #define SIZE 256
 
 /**
@@ -44,9 +44,11 @@ int main() {
 
     /* Open again to check if contents are as expected */
     fd = tfs_open(path, 0);
+    printf("%d\n",fd);
     assert(fd != -1 );
 
     for (int i = 0; i < COUNT; i++) {
+        //printf("%s\n",output);
         assert(tfs_read(fd, output, SIZE) == SIZE);
         assert (memcmp(input, output, SIZE) == 0);
     }
