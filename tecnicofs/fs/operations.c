@@ -120,6 +120,7 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     size_t wrote = 0;
 
     int blockIndex = (int)(file->of_offset / BLOCK_SIZE);
+    if (blockIndex > 11) blockIndex = 11;
     while (to_write > 0) {
         //printf("block: %d(pos%ld)\n",blockIndex,file->of_offset);
         void *block = data_block_get(inode->i_data_block[blockIndex]);
@@ -128,24 +129,30 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             block = data_block_get(inode->i_data_block[blockIndex]);
             printf("new block: %d\n", blockIndex);
         }
-        if(file->of_offset/BLOCK_SIZE < (file->of_offset + to_write) / BLOCK_SIZE){
-            size_t nextBlock = BLOCK_SIZE - (file->of_offset % BLOCK_SIZE);
-            memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, nextBlock);
-            printf("block: %d writing: %d\n",blockIndex, (int)nextBlock);
-            inode -> i_size += nextBlock;
-            wrote += nextBlock;
-            buffer += nextBlock;
-            file->of_offset += nextBlock;
-            to_write -= nextBlock;
-            blockIndex++;
-        } else{
-            memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, to_write);
-            printf("block: %d writing: %d\n",blockIndex, (int)to_write);
-            inode -> i_size += to_write;
-            wrote += to_write;
-            buffer += to_write;
-            file->of_offset += to_write;
-            to_write -= to_write;
+        if (blockIndex < 11){
+            if (file->of_offset/BLOCK_SIZE < (file->of_offset + to_write) / BLOCK_SIZE){
+                size_t nextBlock = BLOCK_SIZE - (file->of_offset % BLOCK_SIZE);
+                memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, nextBlock);
+                printf("block: %d writing: %d\n",blockIndex, (int)nextBlock);
+                inode -> i_size += nextBlock;
+                wrote += nextBlock;
+                buffer += nextBlock;
+                file->of_offset += nextBlock;
+                to_write -= nextBlock;
+                blockIndex++;
+            }
+            else {
+                memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, to_write);
+                printf("block: %d writing: %d\n",blockIndex, (int)to_write);
+                inode -> i_size += to_write;
+                wrote += to_write;
+                buffer += to_write;
+                file->of_offset += to_write;
+                to_write -= to_write;
+            }
+        }
+        else {
+            
         }
     }
     return (ssize_t)wrote;
