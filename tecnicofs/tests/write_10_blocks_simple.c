@@ -39,6 +39,7 @@ int main() {
 
     for (int i = 0; i < COUNT; i++) {
         assert(tfs_read(fd, output, SIZE) == SIZE);
+        //printf("%d: %ld(diff:%d)\n",i,strlen(output),memcmp(input, output, SIZE));
         assert (memcmp(input, output, SIZE) == 0);
     }
 
