@@ -103,15 +103,15 @@ int tfs_close(int fhandle) { return remove_from_open_file_table(fhandle); }
 int createBlock(inode_t *inode, int blockIndex){
     //printf("new block: %d\n",blockIndex);
     if(blockIndex >= 10){
-        int memIndex = data_block_alloc();
+        int savingIndex = data_block_alloc();
         void *indexBlock = data_block_get(inode->i_data_block[10]);
         if(indexBlock == NULL){
             inode->i_data_block[10] = data_block_alloc();
             indexBlock = data_block_get(inode->i_data_block[10]);
-        } 
-        memcpy(indexBlock + (blockIndex-10), &memIndex, sizeof(int));
-        printf("saving block:%d\n",memIndex);
-        return memIndex;
+        }
+        memcpy(indexBlock + (size_t)(blockIndex-10), &savingIndex, sizeof(int));
+        printf("saving block:%d\n",savingIndex);
+        return savingIndex;
     } else{
         inode->i_data_block[blockIndex] = data_block_alloc();
         return blockIndex;
@@ -122,8 +122,9 @@ void *getBlock(inode_t *inode,int blockIndex){
     if(blockIndex >= 10){
         void *indexBlock = data_block_get(inode->i_data_block[10]);
         //if(indexBlock == NULL) printf("aaaaaaaaa\n");
-        int memIndex = -1;
-        memcpy(&memIndex, indexBlock+(blockIndex-10), sizeof(memIndex));
+        int memIndex = 0;
+
+        memcpy(&memIndex, indexBlock+ (size_t)(blockIndex-10), sizeof(int));
         printf("getting block:%d %d\n",memIndex,data_block_get(memIndex) == NULL);
         //if(data_block_get(memIndex)== NULL) printf("aaaaaaa\n");
         if(memIndex==0) return NULL;
@@ -151,16 +152,23 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     int blockIndex = (int)(file->of_offset / BLOCK_SIZE);
     while (to_write > 0) {
         //printf("block: %d\n",blockIndex);
+        //void *block = NULL;
+        //if(blockIndex<10)
         void *block = getBlock(inode,blockIndex);
-        if (block == NULL && blockIndex < 10) {
+        printf("%d\n",block == NULL);
+        if (block == NULL /*&& blockIndex < 10*/) {
             printf("new block: %d\n", blockIndex);
             createBlock(inode,blockIndex);
             block = getBlock(inode, blockIndex);
         }
-        if(blockIndex < (file->of_offset + to_write) / BLOCK_SIZE){
+        if( blockIndex >= 10){
+            wrote += to_write;
+            to_write -= to_write;
+        }
+        else if(blockIndex < (file->of_offset + to_write) / BLOCK_SIZE){
             size_t nextBlock = BLOCK_SIZE - (file->of_offset % BLOCK_SIZE);
             memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, nextBlock);
-            printf("offset: %d\n",(int)(file->of_offset % BLOCK_SIZE));
+            //printf("offset: %d\n",(int)(file->of_offset % BLOCK_SIZE));
             printf("block: %d writing: %d(%d -> %d)\n",blockIndex, (int)nextBlock,(int)file->of_offset, (int)(file->of_offset+nextBlock));
             inode -> i_size += nextBlock;
             wrote += nextBlock;
@@ -169,12 +177,11 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             to_write -= nextBlock;
             blockIndex++;
         } else{
-            //if(blockIndex<10){
-            memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, to_write);
-            printf("offset: %d\n",(int)(file->of_offset % BLOCK_SIZE));
+            if(blockIndex<10)
+                memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, to_write);
+            //printf("offset: %d\n",(int)(file->of_offset % BLOCK_SIZE));
             printf("block: %d writing: %d(%d -> %d)\n",blockIndex, (int)to_write,(int)file->of_offset, (int)(file->of_offset+to_write));
 
-            //}
             inode -> i_size += to_write;
             buffer += to_write;
             file->of_offset += to_write;
