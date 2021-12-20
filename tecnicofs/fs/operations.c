@@ -208,59 +208,6 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     }
     return (ssize_t)read;   
 }
-/*
-    while(to_read > 0){
-    //while (read < inode -> i_size && read < len ){
-
-        void *block = data_block_get(inode->i_data_block[blockIndex]);
-
-        if (block == NULL){
-            printf("ERROR BLOCK %d IS NULL\n", blockIndex);
-            break;
-        }
-
-        if(to_read >= BLOCK_SIZE){
-            size_t reading = to_read % BLOCK_SIZE;
-            memcpy(buffer, block + file->of_offset, reading);
-            buffer += BLOCK_SIZE;
-            read += BLOCK_SIZE;
-            //printf("buffer: %p\n", buffer);a
-            printf("block: %d reading: %d\n",blockIndex, (int)read);
-            to_read -= BLOCK_SIZE;
-            file->of_offset += BLOCK_SIZE;
-            blockIndex++;
-        } else{
-            memcpy(buffer, block + file->of_offset, to_read);
-            read += to_read;
-            file->of_offset += read;
-            printf("offset: %ld\n",file->of_offset);
-            to_read = 0;
-            printf("block: %d reading: %d\n",blockIndex, (int)read);
-            break;
-        }
-    }
-    buffer -= read;
-    return (ssize_t)read;
-}
-*/
-
-/*  stor:
-    if (to_read > 0) {
-        void *block = data_block_get(inode->i_data_block);
-        if (block == NULL) {
-            return -1;
-        }
-
-        //Perform the actual read
-        memcpy(buffer, block + file->of_offset, to_read);
-        //The offset associated with the file handle is
-        //incremented accordingly
-        file->of_offset += to_read;
-    }
-    return (ssize_t)to_read;
-}
-*/
-
 
 int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
 
@@ -278,18 +225,18 @@ int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
     }
     srcFile = tfs_open(source_path, 0);
     dstFile = tfs_open(dest_path,TFS_O_TRUNC);
-
+    FILE* fd = fopen(dest_path,"w");
+    if(fd == NULL) return -1;
     do{
         bytes_read = tfs_read(srcFile, buffer, sizeof(buffer) - 1);
-        //FILE* fd = fopen(dest_path,"w");
-        //bytes_written = (long int)fwrite(buffer,1,(size_t)bytes_read,fd);
-        bytes_written = tfs_write(dstFile, buffer, (size_t)bytes_read);
+        bytes_written = (long int)fwrite(buffer,1,(size_t)bytes_read,fd);
+        //bytes_written = tfs_write(dstFile, buffer, (size_t)bytes_read);
         if(bytes_read != bytes_written){
             printf("%ld %ld", bytes_read, bytes_written);
-            return -2;
+            return -1;
         }
     } while(bytes_read >= sizeof(buffer)-1);
-    
+    fclose(fd);
     tfs_close(srcFile);
     tfs_close(dstFile);
     return 0;

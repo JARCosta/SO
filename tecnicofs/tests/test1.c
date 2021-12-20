@@ -28,14 +28,15 @@ int main() {
 
     int i = 0;
     while(i < strlen(str)/SIZE){
-        r = tfs_read(f, buffer, sizeof(buffer) - 1);
+        r = (int)tfs_read(f, buffer, sizeof(buffer) - 1);
         buffer[SIZE] = '\0';
         //printf("len(buffer): %ld len(str): %ld\n", strlen(buffer), strlen(str));
-        printf("%s\n\n",(char*)buffer);
+        //printf("%s\n\n",(char*)buffer);
         i++;
+        assert(r == strlen(str)/(strlen(str)/SIZE));
+        printf("%s",buffer);
     }
-    assert(r == strlen(str));
-    
+    printf("\n%s\n",str);
     assert(strcmp(buffer, str) == 0);
 
     assert(tfs_close(f) != -1);
