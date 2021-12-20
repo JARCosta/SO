@@ -169,13 +169,12 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             to_write -= nextBlock;
             blockIndex++;
         } else{
-            if(blockIndex<10){
-/*
+            //if(blockIndex<10){
             memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, to_write);
             printf("offset: %d\n",(int)(file->of_offset % BLOCK_SIZE));
             printf("block: %d writing: %d(%d -> %d)\n",blockIndex, (int)to_write,(int)file->of_offset, (int)(file->of_offset+to_write));
-*/
-            }
+
+            //}
             inode -> i_size += to_write;
             buffer += to_write;
             file->of_offset += to_write;
