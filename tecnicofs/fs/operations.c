@@ -234,8 +234,8 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
 
 int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
 
-    char buffer[128];
-    memset(buffer,0,sizeof(buffer));
+   char buffer[128];
+   memset(buffer,0,sizeof(buffer));
 
     long int bytes_read, bytes_written;
     int srcFile, dstFile;
@@ -248,18 +248,18 @@ int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
     }
     srcFile = tfs_open(source_path, 0);
     dstFile = tfs_open(dest_path,TFS_O_TRUNC);
-
+    FILE* fd = fopen(dest_path,"w");
+    if(fd == NULL) return -1;
     do{
         bytes_read = tfs_read(srcFile, buffer, sizeof(buffer) - 1);
-        //FILE* fd = fopen(dest_path,"w");
-        //bytes_written = (long int)fwrite(buffer,1,(size_t)bytes_read,fd);
-        bytes_written = tfs_write(dstFile, buffer, (size_t)bytes_read);
+        bytes_written = (long int)fwrite(buffer,1,(size_t)bytes_read,fd);
+        //bytes_written = tfs_write(dstFile, buffer, (size_t)bytes_read);
         if(bytes_read != bytes_written){
             printf("%ld %ld", bytes_read, bytes_written);
-            return -2;
+            return -1;
         }
     } while(bytes_read >= sizeof(buffer)-1);
-    
+    fclose(fd);
     tfs_close(srcFile);
     tfs_close(dstFile);
     return 0;
