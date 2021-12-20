@@ -48,8 +48,8 @@ int main() {
     assert(fd != -1 );
 
     for (int i = 0; i < COUNT; i++) {
-        //printf("%s\n",output);
         assert(tfs_read(fd, output, SIZE) == SIZE);
+        printf("%s - %s\n",input,output);
         assert (memcmp(input, output, SIZE) == 0);
     }
 
