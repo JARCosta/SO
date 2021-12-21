@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define COUNT 80
+#define COUNT 120
 #define SIZE 256
 
 /**

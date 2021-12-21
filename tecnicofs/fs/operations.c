@@ -103,13 +103,16 @@ int tfs_close(int fhandle) { return remove_from_open_file_table(fhandle); }
 void *createBlock(inode_t *inode, int blockIndex){
     printf("new block: %d",blockIndex);
     int savingBlock = data_block_alloc();
+
     if(blockIndex >= 10){
         void *indexBlock = data_block_get(inode->i_data_block[10]);
+
         if(indexBlock == NULL || inode->i_data_block[10] == 0){         // i_data_block[10] starts with vaue 0 somehow
             inode->i_data_block[10] = data_block_alloc();
             indexBlock = data_block_get(inode->i_data_block[10]);
         }
-        memcpy(indexBlock + (size_t)(blockIndex-10), &savingBlock, sizeof(int));
+
+        memcpy(indexBlock + (size_t)((blockIndex-10)*(int)sizeof(int)), &savingBlock, sizeof(int));
         
         printf("saving block:%d\n",savingBlock);
         return data_block_get(savingBlock);
@@ -122,17 +125,22 @@ void *createBlock(inode_t *inode, int blockIndex){
 
 void *getBlock(inode_t *inode,int blockIndex){
     if(blockIndex >= 10){
-        void *indexBlock = data_block_get(inode->i_data_block[10]);
-        //printf("%d %d\n",inode->i_data_block[10],indexBlock==NULL);
-        if(inode->i_data_block[10] == 0) return NULL;
+        if(inode->i_data_block[10] == 0){   // if there is no block for block #REF
+            printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
+            return NULL;
+        } else{
+            void *indexBlock = data_block_get(inode->i_data_block[10]);
+            //printf("%d %d\n",inode->i_data_block[10],indexBlock==NULL);
 
-        int memIndex = 0;
-        memcpy(&memIndex, indexBlock+ (size_t)(blockIndex-10), sizeof(int));
-        printf("getting block:%d (null:%d)\n",memIndex,data_block_get(memIndex) == NULL);
-        if(memIndex==0) return NULL;
+            int memIndex = 0;
+            memcpy(&memIndex, indexBlock + (size_t)((blockIndex-10)*(int)sizeof(int)), sizeof(int));
 
-        //printf("block%d: %d %d\n",blockIndex, data_block_get(memIndex)==NULL,memIndex);
-        return data_block_get(memIndex);
+            printf("getting block:%d (null:%d)\n",memIndex,data_block_get(memIndex) == NULL);
+            if(memIndex==0) return NULL;
+            //printf("block%d: %d %d\n",blockIndex, data_block_get(memIndex)==NULL,memIndex);
+            return data_block_get(memIndex);
+        }
+
     } else{
         return data_block_get(inode->i_data_block[blockIndex]);
     }
