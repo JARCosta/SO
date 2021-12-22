@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define SIZE 8
+#define SIZE 600
 
 int main() {
 

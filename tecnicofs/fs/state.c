@@ -266,7 +266,7 @@ int data_block_alloc() {
 
         if (free_blocks[i] == FREE) {
             free_blocks[i] = TAKEN;
-            printf("                                  creating block:%d\n",i);
+            //printf("                                  creating block:%d\n",i);
             return i;
         }
     }
