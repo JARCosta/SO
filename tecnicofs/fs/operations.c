@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 int tfs_init() {
     state_init();
@@ -140,7 +141,6 @@ void *getBlock(inode_t *inode,int blockIndex){
             //printf("block%d: %d %d\n",blockIndex, data_block_get(memIndex)==NULL,memIndex);
             return data_block_get(memIndex);
         }
-
     } else{
         return data_block_get(inode->i_data_block[blockIndex]);
     }
@@ -158,8 +158,9 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
         return -1;
     }
 
-    size_t wrote = 0;
+    pthread_rwlock_wrlock(&inode->lock);
 
+    size_t wrote = 0;
     int blockIndex = (int)(file->of_offset / BLOCK_SIZE);
     while (to_write > 0) {
         //printf("block: %d\n",blockIndex);
@@ -198,6 +199,9 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             to_write -= to_write;
         }
     }
+    
+    pthread_rwlock_unlock(&inode->lock);
+
     return (ssize_t)wrote;
 }
 
@@ -220,12 +224,12 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         to_read = len;
     }
 
+    pthread_rwlock_rdlock(&inode->lock);
+    
     //printf("of_offsett: %d\n", (int)file->of_offset);
-
     size_t read = 0;
     int blockIndex = (int)(file->of_offset/BLOCK_SIZE);
     //printf("to_read: %d starting in block: %d\n", (int)to_read, blockIndex);
-
     while (to_read > 0) {
         //printf("block: %d(pos%ld)\n",blockIndex,file->of_offset);
 
@@ -251,7 +255,10 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
             to_read -= to_read;
         }
     }
-    return (ssize_t)read;   
+    
+    pthread_rwlock_unlock(&inode->lock);
+    
+    return (ssize_t)read;
 }
 
 int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){

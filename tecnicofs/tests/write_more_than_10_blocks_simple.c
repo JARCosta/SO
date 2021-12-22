@@ -21,13 +21,7 @@ int main() {
     /* Writing this buffer multiple times to a file stored on 1KB blocks will 
        always hit a single block (since 1KB is a multiple of SIZE=256) */
     char input[SIZE]; 
-    memset(input, 'A', SIZE/* /5 */);
-    /*
-    memset(input, 'B', SIZE/5);
-    memset(input, 'C', SIZE/5);
-    memset(input, 'D', SIZE/5);
-    memset(input, 'E', SIZE/5);
-    */
+    memset(input, 'A', SIZE);
 
 
     char output [SIZE];

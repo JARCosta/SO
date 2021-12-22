@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 /* Persistent FS state  (in reality, it should be maintained in secondary
  * memory; for simplicity, this project maintains it in primary memory) */
@@ -110,6 +111,7 @@ int inode_create(inode_type n_type) {
                     return -1;
                 }
 
+                pthread_rwlock_init(&inode_table[inumber].lock,NULL);
                 inode_table[inumber].i_size = BLOCK_SIZE;
                 inode_table[inumber].i_data_block[0] = b;
 
@@ -151,6 +153,7 @@ int inode_delete(int inumber) {
     }
 
     freeinode_ts[inumber] = FREE;
+    pthread_rwlock_destroy(&inode_table[inumber].lock);
 
     if (inode_table[inumber].i_size > 0) {
         for(int i = 0; i < 10; i++){
