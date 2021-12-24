@@ -21,7 +21,8 @@ TARGET_EXECS := tests/test1 tests/copy_to_external_simple tests/copy_to_external
 vpath # clears VPATH
 vpath %.h $(INCLUDE_DIRS)
 
-CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200809L -lpthread
+LFLAGS = -lpthread
+CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200809L
 CFLAGS += $(INCLUDES)
 
 # Warnings
@@ -64,13 +65,12 @@ fmt: $(SOURCES) $(HEADERS)
 # Note the lack of a rule.
 # make uses a set of default rules, one of which compiles C binaries
 # the CC, LD, CFLAGS and LDFLAGS are used in this rule
-tests/test1: tests/test1.o fs/operations.o fs/state.o
-#tests/asa: tests/asa.o fs/operations.o fs/state.o
-tests/copy_to_external_errors: tests/copy_to_external_errors.o fs/operations.o fs/state.o
-tests/copy_to_external_simple: tests/copy_to_external_simple.o fs/operations.o fs/state.o
-tests/write_10_blocks_spill: tests/write_10_blocks_spill.o fs/operations.o fs/state.o
-tests/write_10_blocks_simple: tests/write_10_blocks_simple.o fs/operations.o fs/state.o
-tests/write_more_than_10_blocks_simple: tests/write_more_than_10_blocks_simple.o fs/operations.o fs/state.o
+tests/test1: tests/test1.o fs/operations.o fs/state.o $(LFLAGS)
+tests/copy_to_external_errors: tests/copy_to_external_errors.o fs/operations.o fs/state.o $(LFLAGS)
+tests/copy_to_external_simple: tests/copy_to_external_simple.o fs/operations.o fs/state.o $(LFLAGS)
+tests/write_10_blocks_spill: tests/write_10_blocks_spill.o fs/operations.o fs/state.o $(LFLAGS)
+tests/write_10_blocks_simple: tests/write_10_blocks_simple.o fs/operations.o fs/state.o $(LFLAGS)
+tests/write_more_than_10_blocks_simple: tests/write_more_than_10_blocks_simple.o fs/operations.o fs/state.o $(LFLAGS)
 
 
 clean:

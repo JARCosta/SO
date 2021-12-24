@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <pthread.h>
+#include <bits/pthreadtypes.h>
 
 #define N 4
 
