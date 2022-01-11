@@ -9,7 +9,7 @@ CFLAGS = -g -Wall -std=c11
 
 
 contapartilhada: contapartilhada.o
-	gcc -o contapartilhada contapartilhada.o
+	gcc -o contapartilhada contapartilhada.o -lthread
 
 clean:
 	rm -f *.o contapartilhada 

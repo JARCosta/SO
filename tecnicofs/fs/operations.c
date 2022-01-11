@@ -41,14 +41,17 @@ int tfs_lookup(char const *name) {
 int tfs_open(char const *name, int flags) {
     int inum;
     size_t offset;
+    pthread_rwlock_t creation_lock;
 
     /* Checks if the path name is valid */
     if (!valid_pathname(name)) {
         return -1;
     }
 
+    pthread_rwlock_wrlock(&creation_lock); // if a file is beeing created, wait for it
     inum = tfs_lookup(name);
     if (inum >= 0) {
+        pthread_rwlock_unlock(&creation_lock);
         /* The file already exists */
         inode_t *inode = inode_get(inum);
         if (inode == NULL) {
@@ -75,6 +78,7 @@ int tfs_open(char const *name, int flags) {
     } else if (flags & TFS_O_CREAT) {
         /* The file doesn't exist; the flags specify that it should be created*/
         /* Create inode */
+
         inum = inode_create(T_FILE);
         if (inum == -1) {
             return -1;
@@ -84,6 +88,7 @@ int tfs_open(char const *name, int flags) {
             inode_delete(inum);
             return -1;
         }
+        pthread_rwlock_unlock(&creation_lock);
         offset = 0;
     } else {
         return -1;
