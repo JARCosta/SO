@@ -41,17 +41,18 @@ int tfs_lookup(char const *name) {
 int tfs_open(char const *name, int flags) {
     int inum;
     size_t offset;
-    pthread_rwlock_t creation_lock;
 
     /* Checks if the path name is valid */
     if (!valid_pathname(name)) {
         return -1;
     }
-
-    pthread_rwlock_wrlock(&creation_lock); // if a file is beeing created, wait for it
+    inode_t *root = inode_get(0);
+    pthread_rwlock_wrlock(&root->lock); // if a file is beeing created, wait for it
+    
     inum = tfs_lookup(name);
+
     if (inum >= 0) {
-        pthread_rwlock_unlock(&creation_lock);
+        pthread_rwlock_unlock(&root->lock);
         /* The file already exists */
         inode_t *inode = inode_get(inum);
         if (inode == NULL) {
@@ -88,7 +89,7 @@ int tfs_open(char const *name, int flags) {
             inode_delete(inum);
             return -1;
         }
-        pthread_rwlock_unlock(&creation_lock);
+        pthread_rwlock_unlock(&root->lock);
         offset = 0;
     } else {
         return -1;
@@ -162,8 +163,8 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     if (inode == NULL) {
         return -1;
     }
-
     pthread_rwlock_wrlock(&inode->lock);
+
 
     size_t wrote = 0;
     int blockIndex = (int)(file->of_offset / BLOCK_SIZE);
