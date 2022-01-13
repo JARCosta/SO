@@ -108,7 +108,7 @@ int tfs_open(char const *name, int flags) {
 int tfs_close(int fhandle) { return remove_from_open_file_table(fhandle); }
 
 void *createBlock(inode_t *inode, int blockIndex){
-    printf("new block: %d",blockIndex);
+    printf("new block: %d\n",blockIndex);
     int savingBlock = data_block_alloc();
 
     if(blockIndex >= 10){
@@ -160,10 +160,10 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
 
     /* From the open file table entry, we get the inode */
     inode_t *inode = inode_get(file->of_inumber);
+    pthread_rwlock_wrlock(&inode->lock);
     if (inode == NULL) {
         return -1;
     }
-    pthread_rwlock_wrlock(&inode->lock);
 
 
     size_t wrote = 0;

@@ -28,6 +28,7 @@ int main() {
     /* Write input COUNT times into a new file */
     int fd = tfs_open(path, TFS_O_CREAT);
     assert(fd != -1);
+    
     for (int i = 0; i < COUNT; i++) {
         assert(tfs_write(fd, input, SIZE) == SIZE);
     }
