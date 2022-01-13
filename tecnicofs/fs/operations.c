@@ -82,16 +82,19 @@ int tfs_open(char const *name, int flags) {
 
         inum = inode_create(T_FILE);
         if (inum == -1) {
+            pthread_rwlock_unlock(&root->lock);
             return -1;
         }
         /* Add entry in the root directory */
         if (add_dir_entry(ROOT_DIR_INUM, inum, name + 1) == -1) {
             inode_delete(inum);
+            pthread_rwlock_unlock(&root->lock);
             return -1;
         }
         pthread_rwlock_unlock(&root->lock);
         offset = 0;
     } else {
+        pthread_rwlock_unlock(&root->lock);
         return -1;
     }
 
@@ -162,6 +165,7 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     inode_t *inode = inode_get(file->of_inumber);
     pthread_rwlock_wrlock(&inode->lock);
     if (inode == NULL) {
+        pthread_rwlock_unlock(&inode->lock);
         return -1;
     }
 
@@ -241,7 +245,10 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
 
         //void *block = data_block_get(inode->i_data_block[blockIndex]);
         void *block = getBlock(inode, blockIndex);
-        if(block == NULL) return -1;
+        if(block == NULL) {
+            pthread_rwlock_unlock(&inode->lock);
+            return -1;
+        }
 
         if(file->of_offset/BLOCK_SIZE < (file->of_offset + to_read) / BLOCK_SIZE){
             size_t nextBlock = BLOCK_SIZE - (file->of_offset % BLOCK_SIZE);
@@ -269,7 +276,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
 
 int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
 
-   char buffer[128];
+   char buffer[1024];
    memset(buffer,0,sizeof(buffer));
 
     long int bytes_read, bytes_written;

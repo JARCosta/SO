@@ -3,7 +3,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define THREADS 50
+#define THREADS 5
 #define SIZE 1024
 #define PATH "/f1"
 #define OUT "threads2.out"
@@ -48,8 +48,17 @@ int main() {
   tfs_copy_to_external_fs(PATH, OUT);
 
   for(int i = 0; i < THREADS; i++){
-    assert(tfs_read(fd, output, SIZE)==SIZE);
   }
+
+    int written = (int)tfs_read(fd, output, SIZE);
+    //printf("%d\n", written);
+    assert(written == SIZE);
+
+    written = (int)tfs_read(fd, output, SIZE);
+    //printf("%d\n", written);
+    assert(written == -1);
+
+
   printf("Great success\n");
 }
 

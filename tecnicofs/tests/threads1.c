@@ -3,9 +3,9 @@
 #include <string.h>
 #include <pthread.h>
 
-#define THREADS 50
+#define THREADS 6
 #define SIZE 1024
-#define OUT "threads2.out"
+#define OUT "threads1.out"
 
 struct arg_struct {
     int fd;
@@ -15,8 +15,9 @@ struct arg_struct {
 void* write(void *arguments){
   char input[SIZE];
   struct arg_struct *args = (struct arg_struct *)arguments;
-
-  memset(input, (char)args->value + '0', SIZE);
+  printf("%c\n",'A'+ args->value % 24);
+  
+  memset(input, 'A'+ args->value % 24, SIZE);
   tfs_write(args->fd, input, SIZE);
   return NULL;
 }
@@ -35,9 +36,11 @@ int main() {
   pthread_t tid[THREADS];
 
   for (int i = 0; i < THREADS; i++){
+    int j = 0;
+    j = i;
     struct arg_struct args;
     args.fd = fd;
-    args.value = i;
+    args.value = j;
     int error = pthread_create(&tid[i],0,&write, (void *)&args);
     assert(error == 0);
   }
@@ -51,6 +54,7 @@ int main() {
   fd = tfs_open(path, 0);
   assert(fd != -1 );
   tfs_copy_to_external_fs(path, OUT);
+  
   for(int i = 0; i < THREADS; i++){
     assert(tfs_read(fd, output, SIZE)==SIZE);
   }
