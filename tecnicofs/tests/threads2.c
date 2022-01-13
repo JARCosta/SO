@@ -6,12 +6,13 @@
 #define THREADS 50
 #define SIZE 1024
 #define PATH "/f1"
+#define OUT "threads2.out"
 
 struct arg_struct {
   int value;
 };
 
-void* func(void *arguments){
+void* thread(void *arguments){
   char input[SIZE];
   struct arg_struct *args = (struct arg_struct *)arguments;
   
@@ -33,7 +34,7 @@ int main() {
   for (int i = 0; i < THREADS; i++){
     struct arg_struct args;
     args.value = i;
-    pthread_create(&tid[i],0,&func, (void *)&args);
+    pthread_create(&tid[i],0,&thread, (void *)&args);
   }
 
   for (int i = 0; i < THREADS; i++){
@@ -44,7 +45,7 @@ int main() {
   int fd = tfs_open(PATH, 0);
   assert(fd != -1 );
   
-  tfs_copy_to_external_fs(PATH, "out");
+  tfs_copy_to_external_fs(PATH, OUT);
 
   for(int i = 0; i < THREADS; i++){
     assert(tfs_read(fd, output, SIZE)==SIZE);

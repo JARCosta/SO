@@ -92,7 +92,7 @@ int main (void) {
    pthread_t tid[N];
 
    //inicializaMatriz(buffer, N, TAMANHO);
-      for (i=0; i< N; i++){
+   for (i=0; i< N; i++){
       if(pthread_create (&tid[i], 0, soma_linha,buffer[i])== 0) {
          printf ("Criada a tarefa %d\n", (int)tid[i]);
       }

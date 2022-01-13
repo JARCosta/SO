@@ -5,6 +5,7 @@
 
 #define THREADS 50
 #define SIZE 1024
+#define OUT "threads2.out"
 
 struct arg_struct {
     int fd;
@@ -49,7 +50,7 @@ int main() {
 
   fd = tfs_open(path, 0);
   assert(fd != -1 );
-  tfs_copy_to_external_fs(path, "out");
+  tfs_copy_to_external_fs(path, OUT);
   for(int i = 0; i < THREADS; i++){
     assert(tfs_read(fd, output, SIZE)==SIZE);
   }
