@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 #define THREADS 6
-#define SIZE 1024
+#define SIZE 2048
 #define OUT "threads1.out"
 
 struct arg_struct {
@@ -15,9 +15,9 @@ struct arg_struct {
 void* write(void *arguments){
   char input[SIZE];
   struct arg_struct *args = (struct arg_struct *)arguments;
-  printf("%c\n",'A'+ args->value % 24);
+  printf("%c\n",'A'+ args->value % 2);
   
-  memset(input, 'A'+ args->value % 24, SIZE);
+  memset(input, 'A'+ args->value % 2, SIZE);
   tfs_write(args->fd, input, SIZE);
   return NULL;
 }

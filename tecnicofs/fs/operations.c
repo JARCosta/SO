@@ -47,14 +47,21 @@ int tfs_open(char const *name, int flags) {
         return -1;
     }
     inode_t *root = inode_get(0);
-    pthread_rwlock_wrlock(&root->lock); // if a file is beeing created, wait for it
+    if (pthread_rwlock_wrlock(&root->lock) != 0) {
+        printf("error locking\n");
+        return -1;
+    }// if a file is beeing created, wait for it
     
     inum = tfs_lookup(name);
 
     if (inum >= 0) {
-        pthread_rwlock_unlock(&root->lock);
+        if (pthread_rwlock_unlock(&root->lock) != 0){
+            printf("error unlocking\n");
+            return -1;
+        }
         /* The file already exists */
         inode_t *inode = inode_get(inum);
+        pthread_rwlock_wrlock(&inode -> lock);
         if (inode == NULL) {
             return -1;
         }
@@ -64,6 +71,7 @@ int tfs_open(char const *name, int flags) {
             if (inode->i_size > 0) {
                 for(int i = 0; i<10;i++)
                     if (data_block_free(inode->i_data_block[i]) == -1) {
+                        pthread_rwlock_unlock(&inode->lock);
                         return -1;
                     }
 
@@ -76,25 +84,38 @@ int tfs_open(char const *name, int flags) {
         } else {
             offset = 0;
         }
+        pthread_rwlock_unlock(&inode->lock);
     } else if (flags & TFS_O_CREAT) {
         /* The file doesn't exist; the flags specify that it should be created*/
         /* Create inode */
 
         inum = inode_create(T_FILE);
         if (inum == -1) {
-            pthread_rwlock_unlock(&root->lock);
+            if (pthread_rwlock_unlock(&root->lock) != 0){
+            printf("error unlocking\n");
+            return -1;
+        }
             return -1;
         }
         /* Add entry in the root directory */
         if (add_dir_entry(ROOT_DIR_INUM, inum, name + 1) == -1) {
             inode_delete(inum);
-            pthread_rwlock_unlock(&root->lock);
+            if (pthread_rwlock_unlock(&root->lock) != 0){
+            printf("error unlocking\n");
             return -1;
         }
-        pthread_rwlock_unlock(&root->lock);
+            return -1;
+        }
+        if (pthread_rwlock_unlock(&root->lock) != 0){
+            printf("error unlocking\n");
+            return -1;
+        }
         offset = 0;
     } else {
-        pthread_rwlock_unlock(&root->lock);
+        if (pthread_rwlock_unlock(&root->lock) != 0){
+            printf("error unlocking\n");
+            return -1;
+        }
         return -1;
     }
 
@@ -157,6 +178,7 @@ void *getBlock(inode_t *inode,int blockIndex){
 
 ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     open_file_entry_t *file = get_open_file_entry(fhandle);
+    pthread_mutex_lock(&file->lock);
     if (file == NULL) {
         return -1;
     }
@@ -166,6 +188,7 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     pthread_rwlock_wrlock(&inode->lock);
     if (inode == NULL) {
         pthread_rwlock_unlock(&inode->lock);
+        pthread_mutex_unlock(&file->lock);
         return -1;
     }
 
@@ -186,7 +209,8 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             wrote += to_write;
             to_write -= to_write;
         }
-        else */if(blockIndex < (file->of_offset + to_write) / BLOCK_SIZE){
+        else */
+        if(blockIndex < (file->of_offset + to_write) / BLOCK_SIZE){
             size_t nextBlock = BLOCK_SIZE - (file->of_offset % BLOCK_SIZE);
             memcpy(block + (file->of_offset % BLOCK_SIZE), buffer, nextBlock);
             //printf("offset: %d\n",(int)(file->of_offset % BLOCK_SIZE));
@@ -211,30 +235,34 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     }
     
     pthread_rwlock_unlock(&inode->lock);
-
+    pthread_mutex_unlock(&file->lock);
     return (ssize_t)wrote;
 }
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
+
+
     open_file_entry_t *file = get_open_file_entry(fhandle);
+    pthread_mutex_lock(&file->lock);
     if (file == NULL) {
         return -1;
     }
 
+
     //From the open file table entry, we get the inode
     inode_t *inode = inode_get(file->of_inumber);
+    pthread_rwlock_rdlock(&inode->lock);
     if (inode == NULL) {
         return -1;
     }
 
+
     //Determine how many bytes to read
     size_t to_read = inode->i_size - file->of_offset;
-    
     if (to_read > len) {
         to_read = len;
     }
 
-    pthread_rwlock_rdlock(&inode->lock);
     
     //printf("of_offsett: %d\n", (int)file->of_offset);
     size_t read = 0;
@@ -247,6 +275,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         void *block = getBlock(inode, blockIndex);
         if(block == NULL) {
             pthread_rwlock_unlock(&inode->lock);
+            pthread_mutex_unlock(&file->lock);
             return -1;
         }
 
@@ -270,28 +299,30 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     }
     
     pthread_rwlock_unlock(&inode->lock);
-    
+    pthread_mutex_unlock(&file->lock);
     return (ssize_t)read;
 }
 
 int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
+    
+    int srcFile = tfs_open(source_path, 0);
+//    open_file_entry_t *fhandle = get_open_file_entry(srcFile);
+//    pthread_mutex_lock(&fhandle->lock);
 
-   char buffer[1024];
-   memset(buffer,0,sizeof(buffer));
+    int dstFile = tfs_open(dest_path,TFS_O_TRUNC);
 
-    long int bytes_read, bytes_written;
-    int srcFile, dstFile;
-
-    if(tfs_lookup(source_path) == -1){
-        return -1;
-    }
-    if (tfs_lookup(dest_path) != 0){
+    if (dstFile != 0){
         dstFile = tfs_open(dest_path, TFS_O_CREAT);
     }
-    srcFile = tfs_open(source_path, 0);
-    dstFile = tfs_open(dest_path,TFS_O_TRUNC);
+    
+    char buffer[1024];
+    memset(buffer,0,sizeof(buffer));
+    
     FILE* fd = fopen(dest_path,"w");
     if(fd == NULL) return -1;
+    
+    long int bytes_read, bytes_written;
+    
     do{
         bytes_read = tfs_read(srcFile, buffer, sizeof(buffer) - 1);
         bytes_written = (long int)fwrite(buffer,1,(size_t)bytes_read,fd);
