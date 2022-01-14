@@ -3,8 +3,8 @@
 #include <string.h>
 #include <pthread.h>
 
-#define THREADS 26
-#define SIZE 1
+#define THREADS 12
+#define SIZE 2
 #define OUT "threads4.out"
 #define PATH "/f1"
 
@@ -13,43 +13,41 @@ struct arg_struct {
   char charact;
   int value;
 };
-char string[THREADS];
+char string[THREADS*SIZE];
 int fd[THREADS];
-char buffer[SIZE];
+int FD;
+char buffer[SIZE*THREADS];
 int it;
 
 void* threads(){
   int value = it;
-  fd[it] = tfs_open(PATH,0);
-  assert(tfs_read(fd,buffer,SIZE*THREADS)== SIZE*THREADS);
+  //printf("%i\n",value);
+  int thread_file_handle = tfs_open(PATH,0);
+  tfs_read(thread_file_handle,buffer, (size_t)(SIZE*value));
+  tfs_close(thread_file_handle);
   printf("%s\n", buffer);
   return NULL;
 }
 
 int main() {
-  for(int i = 0; i!=THREADS;i++){
-    string[i] = (char)('A' + i%24);
-  }
-  char *PATH = "/f1";
-
-  char output [SIZE];
 
   assert(tfs_init() != -1);
-  for(int i = 0; i< THREADS ; i++){
-    fd[i] = tfs_open(PATH, TFS_O_CREAT);
-    assert(fd[i] != -1);
-  }
+
+  FD = tfs_open(PATH, TFS_O_CREAT);
+  assert(FD != -1);
 
   pthread_t tid[THREADS];
 
-  char input[SIZE];
-  for(int i = 0; i< THREADS; i++){
-    for(int j = 0; j < THREADS; j++ ){
-      memset(input, 'A' + j , SIZE);
-      tfs_write(fd[i], input, SIZE);
+  for(int i = 0; i!=THREADS;i++){
+    for(int j = 0; j<SIZE;j++){
+      string[i*SIZE+j] = (char)('A' + i%24);
     }
   }
-  for(int i = 0; i< THREADS; i++) assert(tfs_close(fd[i]) != -1);
+  printf("input: %s\n",string);
+
+  tfs_write(fd[1], string, (size_t)(SIZE * THREADS));
+  printf("%s\n",string);
+  assert(tfs_close(FD) != -1);
 
   for (int i = 0; i < THREADS; i++){
     it = i;
@@ -61,13 +59,15 @@ int main() {
     pthread_join (tid[i], NULL);
   }
 
-  for(int i = 0; i< THREADS; i++) assert(tfs_close(fd[i]) != -1);
+  //for(int i = 0; i< THREADS; i++) assert(tfs_close(fd[i]) != -1);
 
   tfs_copy_to_external_fs(PATH, OUT);
-  
+  /*
+  char output [SIZE];
   for(int i = 0; i < THREADS; i++){
-    assert(tfs_read(fd, output, SIZE)==SIZE);
+    assert(tfs_read(fd[i], output, SIZE)==SIZE);
   }
+  */
   printf("Great success\n");
 }
 

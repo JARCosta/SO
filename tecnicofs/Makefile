@@ -23,6 +23,7 @@ TARGET_EXECS += tests/threads4
 TARGET_EXECS += tests/threads5
 TARGET_EXECS += tests/threads6
 TARGET_EXECS += tests/threads7
+TARGET_EXECS += tests/threads8
 
 # VPATH is a variable used by Makefile which finds *sources* and makes them available throughout the codebase
 # vpath %.h <DIR> tells make to look for header files in <DIR>
@@ -85,7 +86,8 @@ tests/threads3: tests/threads3.o fs/operations.o fs/state.o $(LFLAGS)
 tests/threads4: tests/threads4.o fs/operations.o fs/state.o $(LFLAGS)
 tests/threads5: tests/threads5.o fs/operations.o fs/state.o $(LFLAGS)
 tests/threads6: tests/threads6.o fs/operations.o fs/state.o $(LFLAGS)
-tests/threads7: tests/threads6.o fs/operations.o fs/state.o $(LFLAGS)
+tests/threads7: tests/threads7.o fs/operations.o fs/state.o $(LFLAGS)
+tests/threads8: tests/threads8.o fs/operations.o fs/state.o $(LFLAGS)
 
 
 clean:
