@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 #define THREADS 4
-#define SIZE 128
+#define SIZE 10
 #define OUT "threads5.out"
 
 int fd1;
@@ -33,18 +33,24 @@ void *read(){//esquece ele so compila o q consegue, se der erro aq compila o 7 a
 
 int main() {
   char *path = "/f1";
-  //char input [SIZE * 2];
+ // char input [SIZE * 2];
   char output [SIZE];
-  //memset(input, 'T', SIZE * 2);
+ // memset(input, 'T', SIZE * 2);
   //printf("initial input: %s\n", input);
   assert(tfs_init() != -1);
-
+  printf("***\n");
   fd1 = tfs_open(path, TFS_O_CREAT);
   assert(fd1 != -1);
+  printf("***\n");
   fd2 = tfs_open(path, 0);
   assert(fd2 != -1);
+  printf("***\n");
+  //int fd3 = tfs_open(path, 0);
+  assert(fd2 != -1);
+  printf("***\n");
 
- // tfs_write(fd, input, SIZE * 2);
+ // tfs_write(fd3, input, SIZE * 2);
+  printf("***\n");
   
   pthread_t tid[THREADS];
 
@@ -52,9 +58,11 @@ int main() {
     int error;
     if (i % 2 == 0){
         error = pthread_create(&tid[i],0,write, NULL);
+        printf("***\n");
     }
     else {
         error = pthread_create(&tid[i],0,read, NULL);
+        printf("***\n");
     }
     assert(error == 0);
   }
@@ -64,11 +72,15 @@ int main() {
   }
 
   printf("fd1: %d, fd2: %d\n", fd1, fd2);
+  printf("***\n");
 
   assert(tfs_close(fd1) != -1);
+  printf("***\n");
   assert(tfs_close(fd2) != -1);
+  printf("***\n");
 
   int fd = tfs_open(path, 0);
+  printf("***\n");
   assert(fd != -1 );
   tfs_copy_to_external_fs(path, OUT);
   
@@ -76,6 +88,7 @@ int main() {
     if (i % 2 == 0)
     assert(tfs_read(fd, output, SIZE)==SIZE);
     printf("output: %s\n", output);
+    printf("***\n");
   }
   printf("Great success\n");
 }
