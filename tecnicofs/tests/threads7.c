@@ -3,9 +3,9 @@
 #include <string.h>
 #include <pthread.h>
 
-#define THREADS 12
-#define SIZE 2
-#define OUT "threads4.out"
+#define THREADS 6
+#define SIZE 3
+#define OUT "threads7.out"
 #define PATH "/f1"
 
 
@@ -16,16 +16,31 @@ struct arg_struct {
 char string[THREADS*SIZE];
 int fd[THREADS];
 int FD;
-char buffer[SIZE*THREADS];
 int it;
+int ocurrs[THREADS];
 
 void* threads(){
-  int value = it;
-  //printf("%i\n",value);
-  int thread_file_handle = tfs_open(PATH,0);
-  tfs_read(thread_file_handle,buffer, (size_t)(SIZE*value));
-  tfs_close(thread_file_handle);
-  printf("%s\n", buffer);
+  char string2[SIZE*THREADS];
+  char buffer[2];
+  //char trash[SIZE*THREADS];
+  //int value = it;
+  //printf("%d\n",value);
+  //int thread_file_handle = tfs_open(PATH,0);
+  
+  //tfs_read(FD, trash, (size_t)(SIZE));
+  
+  for(int i = 0; i < SIZE;i++){
+    assert(tfs_read(FD, buffer, 1) == 1);
+    strcat(string2,buffer);
+    //printf("%c\n",buffer[0]);
+    int character = (int)buffer[0] - (int)'A';
+    ocurrs[character]++;
+    //printf("%s %d\n", buffer, (int)strlen(buffer));
+  }
+  //printf("%s\n",string2);
+
+  //assert(strlen(buffer)==SIZE);
+  //tfs_close(thread_file_handle);
   return NULL;
 }
 
@@ -43,11 +58,13 @@ int main() {
       string[i*SIZE+j] = (char)('A' + i%24);
     }
   }
-  printf("input: %s\n",string);
+  //printf("input: %s\n",string);
 
   tfs_write(fd[1], string, (size_t)(SIZE * THREADS));
-  printf("%s\n",string);
+  //printf("%s\n",string);
   assert(tfs_close(FD) != -1);
+  FD = tfs_open(PATH,0);
+  assert(FD != -1);
 
   for (int i = 0; i < THREADS; i++){
     it = i;
@@ -57,6 +74,11 @@ int main() {
 
   for (int i = 0; i < THREADS; i++){
     pthread_join (tid[i], NULL);
+  }
+
+  for(int i = 0; i< THREADS; i++){
+    //printf("%c %d\n",(char)('A'+i), ocurrs[i]);
+    assert(ocurrs[i] == SIZE);
   }
 
   //for(int i = 0; i< THREADS; i++) assert(tfs_close(fd[i]) != -1);
@@ -71,6 +93,12 @@ int main() {
   printf("Great success\n");
 }
 
+
+
+
+
+
+
 /*
 tfs_open(file,0)
 create 4 threads
@@ -79,3 +107,6 @@ create 4 threads
 w/ threads: 111333222444
 no threads: 222444
 */
+
+
+

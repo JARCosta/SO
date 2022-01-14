@@ -55,8 +55,8 @@ endif
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
 .PHONY: all clean depend fmt
 
+CandC: clean all
 all: $(TARGET_EXECS)
-
 
 # The following target can be used to invoke clang-format on all the source and header
 # files. clang-format is a tool to format the source code based on the style specified 
