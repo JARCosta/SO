@@ -86,6 +86,17 @@ void state_init() {
 }
 
 void state_destroy() { /* nothing to do */
+    pthread_mutex_destroy(&inode_table_lock);
+    pthread_mutex_destroy(&free_blocks_lock);
+    pthread_mutex_destroy(&open_file_entries_lock);
+    int i = 0;
+    while(freeinode_ts[i] == FREE || freeinode_ts[i] == TAKEN){
+        i++;
+    }
+    i--;
+    for(i=i;i>=0;i--){
+        inode_delete(i); // destroy inode and its lock
+    }
 }
 
 /*
@@ -501,21 +512,9 @@ int remove_from_open_file_table(int fhandle) {
  * Returns: pointer to the entry if sucessful, NULL otherwise
  */
 open_file_entry_t *get_open_file_entry(int fhandle) {
-    if (pthread_mutex_lock(&open_file_entries_lock) != 0){
-        printf("error locking\n");
-        return NULL;
-    }
     if (!valid_file_handle(fhandle)) {
-        if (pthread_mutex_unlock(&open_file_entries_lock) != 0){
-            printf("error unlocking\n");
-            return NULL;
-        }
         return NULL;
     }
     open_file_entry_t *ret = &open_file_table[fhandle];
-    if (pthread_mutex_unlock(&open_file_entries_lock) != 0){
-        printf("error unlocking\n");
-        return NULL;
-    }
     return ret;
 }

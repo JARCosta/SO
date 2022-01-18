@@ -48,6 +48,10 @@ int inode_create(inode_type n_type);
 int inode_delete(int inumber);
 inode_t *inode_get(int inumber);
 
+pthread_mutex_t open_file_entries_lock;
+pthread_mutex_t inode_table_lock;
+pthread_mutex_t free_blocks_lock;
+
 int clear_dir_entry(int inumber, int sub_inumber);
 int add_dir_entry(int inumber, int sub_inumber, char const *sub_name);
 int find_in_dir(int inumber, char const *sub_name);

@@ -12,6 +12,10 @@ struct arg_struct {
     int value;
 };
 
+// com locks, cada escrita esperará pela outra,
+// ou seja, com varios threads querem escrever
+// sem locks, estes escreverão no mesmo file, uns por cima dos outros
+
 void* write(void *arguments){
   char input[SIZE];
   struct arg_struct *args = (struct arg_struct *)arguments;

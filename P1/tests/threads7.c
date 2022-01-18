@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 #define THREADS 6
-#define SIZE 3
+#define SIZE 100
 #define OUT "threads7.out"
 #define PATH "/f1"
 
@@ -18,6 +18,15 @@ int fd[THREADS];
 int FD;
 int it;
 int ocurrs[THREADS];
+
+// regista o numero de vezes que cada letra é lida
+// com locks, cada elemento deverá armazenar SIZE
+
+//ex:  SIZE = 2 THREADS = 2
+//ficheiro armazena: "AABB"
+// ou seja, ocurrs[0], que guarda as ocurrencias de A, deverá armazenar 2
+
+//sem locks, haverá letras duplamente lidas
 
 void* threads(){
   char string2[SIZE*THREADS];

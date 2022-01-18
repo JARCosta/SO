@@ -177,9 +177,13 @@ void *getBlock(inode_t *inode,int blockIndex){
 }
 
 ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
+    pthread_mutex_lock(&open_file_entries_lock);
     open_file_entry_t *file = get_open_file_entry(fhandle);
     pthread_mutex_lock(&file->lock);
+    pthread_mutex_unlock(&open_file_entries_lock);
+    
     if (file == NULL) {
+        pthread_mutex_unlock(&file->lock);
         return -1;
     }
 
@@ -241,9 +245,10 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
 
-
+    pthread_mutex_lock(&open_file_entries_lock);
     open_file_entry_t *file = get_open_file_entry(fhandle);
     pthread_mutex_lock(&file->lock);
+    pthread_mutex_unlock(&open_file_entries_lock);
     if (file == NULL) {
         return -1;
     }
