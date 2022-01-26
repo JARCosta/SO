@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
         op_code = buffer[0];
         switch (op_code) {
         case '1':
-//            int session_id = -1;;
+            int session_id = -1;;
 
             for(int i = 1; i < 41; i++){
                 client_name[i-1] = buffer[i];
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
             for (int i = 0; i < MAX_SESSIONS; i++){
                 if (free_sessions[i] == FREE);
                 n_sessions[i].client_path_name = client_name;
-//                session_id = i;
+                session_id = i;
                 break;
             }
             int client_pipe;
