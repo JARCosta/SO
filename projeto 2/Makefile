@@ -47,7 +47,7 @@ LDFLAGS = -pthread
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
 .PHONY: all clean depend fmt
 
-all: $(TARGET_EXECS)
+all: clean $(TARGET_EXECS)
 
 
 # The following target can be used to invoke clang-format on all the source and header

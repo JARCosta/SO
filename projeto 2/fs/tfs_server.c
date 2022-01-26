@@ -33,25 +33,29 @@ int main(int argc, char **argv) {
     while(1){
         read(server_id, buffer, BUFFER_SIZE);
         op_code = buffer[0];
+        int session_id;
         switch (op_code) {
         case '1':
-//            int session_id = -1;;
+            session_id = -1;
 
             for(int i = 1; i < 41; i++){
                 client_name[i-1] = buffer[i];
             }
 
             for (int i = 0; i < MAX_SESSIONS; i++){
-                if (free_sessions[i] == FREE);
-                n_sessions[i].client_path_name = client_name;
-//                session_id = i;
+                if (free_sessions[i] == FREE){
+                    n_sessions[i].client_path_name = client_name;
+                    
+                }
+                session_id = i;
                 break;
             }
-            int client_pipe;
-            if(client_pipe = open(client_name, O_WRONLY) == -1){
+            int client_pipe = open(client_name, O_WRONLY);
+            if(client_pipe  == -1){
                 printf("ERROR: Couldnt open client pipe for writing.\n");
                 return -1;
-            }   
+            }
+            
             write(client_pipe, client_name, sizeof(client_name));
             break;
         case '2':

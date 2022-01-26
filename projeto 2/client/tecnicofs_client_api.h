@@ -1,43 +1,39 @@
-#ifndef OPERATIONS_H
-#define OPERATIONS_H
+#ifndef CLIENT_API_H
+#define CLIENT_API_H
 
 #include "common/common.h"
-#include "config.h"
-#include "state.h"
-#include <sys/types.h>
-#include <errno.h>
 #include <fcntl.h>
-
-typedef struct{
-    char const *client_path_name;
-} session;
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <stdio.h>
 
 /*
- * Initializes tecnicofs
+ * Establishes a session with a TecnicoFS server.
+ * Input:
+ * - client_pipe_path: pathname of a named pipe that will be used for
+ *   the client to receive responses. This named pipe will be created (via
+ * 	 mkfifo) inside tfs_mount.
+ * - server_pipe_path: pathname of the named pipe where the server is listening
+ *   for client requests
+ * When successful, the new session's identifier (session_id) was
+ * saved internally by the client; also, the client process has
+ * successfully opened both named pipes (one for reading, the other one for
+ * writing, respectively).
+ *
  * Returns 0 if successful, -1 otherwise.
  */
-int tfs_init();
+int tfs_mount(char const *client_pipe_path, char const *server_pipe_path);
 
 /*
- * Destroy tecnicofs
+ * Ends the currently active session.
+ * After notifying the server, both named pipes are closed by the client,
+ * the client named pipe is deleted (via unlink) and the client's session_id is
+ * set to none.
+ *
  * Returns 0 if successful, -1 otherwise.
  */
-int tfs_destroy();
-
-/*
- * Waits until no file is open and then destroy tecnicofs
- * Returns 0 if successful, -1 otherwise.
- */
-int tfs_destroy_after_all_closed();
-
-/*
- * Looks for a file
- * Note: as a simplification, only a plain directory space (root directory only)
- * is supported Input:
- *  - name: absolute path name
- * Returns the inumber of the file, -1 if unsuccessful
- */
-int tfs_lookup(char const *name);
+int tfs_unmount();
 
 /*
  * Opens a file
@@ -62,30 +58,28 @@ int tfs_close(int fhandle);
  * 	- file handle (obtained from a previous call to tfs_open)
  * 	- buffer containing the contents to write
  * 	- length of the contents (in bytes)
+ *
  * Returns the number of bytes that were written (can be lower than
- * 'len' if the maximum file size is exceeded), or -1 in case of error
+ * 'len' if the maximum file size is exceeded), or -1 in case of error.
  */
 ssize_t tfs_write(int fhandle, void const *buffer, size_t len);
 
 /* Reads from an open file, starting at the current offset
- * Input:
+ * * Input:
  * 	- file handle (obtained from a previous call to tfs_open)
  * 	- destination buffer
  * 	- length of the buffer
+ *
  * Returns the number of bytes that were copied from the file to the buffer
  * (can be lower than 'len' if the file size was reached), or -1 in case of
- * error
+ * error.
  */
 ssize_t tfs_read(int fhandle, void *buffer, size_t len);
 
-/* Copies the contents of a file that exists in TecnicoFS to the contents
- * of another file in the OS' file system tree (outside TecnicoFS).
- * Input:
- *      - path name of the source file (from TecnicoFS)
- *      - path name of the destination file (in the main file system), which
- *        is created it needed, and overwritten if it already exists
+/*
+ * Orders TecnicoFS server to wait until no file is open and then shutdown
  * Returns 0 if successful, -1 otherwise.
  */
-int tfs_copy_to_external_fs(char const *source_path, char const *dest_path);
+int tfs_shutdown_after_all_closed();
 
-#endif // OPERATIONS_H
+#endif /* CLIENT_API_H */

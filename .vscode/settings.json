@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "stdlib.h": "c",
-        "pthread.h": "c"
+        "pthread.h": "c",
+        "tecnicofs_client_api.h": "c"
     }
 }
