@@ -22,7 +22,7 @@ enum {
 };
 
 typedef struct{
-    char client_pipe_path[CLIENT_NAME_SIZE];
-} mount;
+    char client_pipe_name[CLIENT_NAME_SIZE];
+} mount_struct;
 
 #endif /* COMMON_H */

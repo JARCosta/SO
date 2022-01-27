@@ -8,12 +8,9 @@ void* message_to_server;
 
 int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     /* TODO: Implement this */
-    /*
-    if (unlink(client_pipe_path) == -1){
-        printf("ERROR: Couldnt delete client pipe\n");
-        return -1;
-    } 
-    */
+
+    unlink(client_pipe_path);
+
     printf("CLIENT: creating client pipe\n");
     if (mkfifo(client_pipe_path, 0777) == -1){
         if (errno != EEXIST){
@@ -28,57 +25,42 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
         printf("ERROR: Couldnt open server pipe.\n");
         return -1;
     }
-
-    //char buffer[BUFFER_SIZE];
-    //buffer[0] = '0' + (char)TFS_OP_CODE_MOUNT;
-    //int size = (int)sizeof(client_pipe_path);
-    
+ 
     char op_code = '0' + TFS_OP_CODE_MOUNT;
     
-    mount input;
+    mount_struct input;
     printf("before message to server\n");
-    memset(input.client_pipe_path,'\0',  sizeof(char) * CLIENT_NAME_SIZE);
-    memcpy(&input.client_pipe_path, client_pipe_path, sizeof(client_pipe_path));
+    memset(&input.client_pipe_name,'\0',  sizeof(char) * CLIENT_NAME_SIZE);
+    memcpy(&input.client_pipe_name, client_pipe_path, sizeof(client_pipe_path));
     printf("after message to server\n");
-    message_to_server = malloc(sizeof(char) + sizeof(input));
-    memcpy(message_to_server, &op_code, sizeof(char));
-    memcpy(message_to_server + sizeof(char), &input, sizeof(input));
-
-    /*
-    for(int i = 0; i < size; i++){
-        buffer[i + 1] = client_pipe_path[i];
-    }
-
-    for(int i = size; i < 40; i++){
-        buffer[i + 1] = '0';
-    }
-    for(int i = 1; i < BUFFER_SIZE; i++){
-        buffer[i] = 'a';
-    }
-    buffer[BUFFER_SIZE - 1] = '\0';
-    */
     
-    //printf("CLIENT: writing on server pipe: %s.\n", message_to_server);
-    int x = write(server_pipe, &message_to_server, sizeof(message_to_server));
+    message_to_server = malloc(sizeof(char) + sizeof(mount_struct));
+   
+    memcpy(message_to_server, &op_code, sizeof(char));
+    memcpy(message_to_server + sizeof(char), &input, sizeof(mount_struct));    
+    printf("CLIENT: sending %s to server\n", (char*)message_to_server);
+    
+    int x = write(server_pipe, message_to_server, strlen(message_to_server));
     if(x == -1){
         printf("ERROR: writing\n");
         return -1;
     }
-    printf("CLIENT: wrote %d \n", x);
+    printf("CLIENT: wrote %d to server\n", x);
+
     printf("CLIENT: opening client pipe\n");
-    client_pipe = open(client_pipe_path, O_RDONLY);
-    printf("bb\n");
-    
+    client_pipe = open(client_pipe_path, O_RDONLY);    
     if(client_pipe == -1){
         printf("ERROR: Couldnt open client pipe.\n");
         return -1;
     }
-
-    if(read(client_pipe, session_id, sizeof(int)) == -1){
+    printf("CLIENT: client pipe opened\n");
+    int red = read(client_pipe, &session_id, sizeof(int));
+    if(red == -1){
         printf("ERROR: reading\n");
         return -1;
     }
-    
+    printf("CLIENT: read %d from server\n", session_id);
+
     printf("CLIENT: mounted session: %d\n", session_id);
     return 0;
 }
@@ -102,9 +84,6 @@ int tfs_unmount() {
 
 int tfs_open(char const *name, int flags) {
     /* TODO: Implement this */
-    int size = 1 + sizeof(session_id) + 40 + sizeof(int);
-    char buffer[size];
-
 
 
     return -1;
