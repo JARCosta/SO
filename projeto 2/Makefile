@@ -47,8 +47,7 @@ LDFLAGS = -pthread
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
 .PHONY: all clean depend fmt
 
-all: clean $(TARGET_EXECS)
-
+all: $(TARGET_EXECS)
 
 # The following target can be used to invoke clang-format on all the source and header
 # files. clang-format is a tool to format the source code based on the style specified 
@@ -72,6 +71,8 @@ tests/lib_destroy_after_all_closed_test: fs/operations.o fs/state.o
 
 clean:
 	rm -f $(OBJECTS) $(TARGET_EXECS)
+	rm f1
+	rm f2
 
 
 # This generates a dependency file, with some default dependencies gathered from the include tree

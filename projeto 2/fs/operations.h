@@ -8,9 +8,12 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
+
 
 typedef struct{
     char const *client_path_name;
+    int client_pipe;
 } session;
 
 /*

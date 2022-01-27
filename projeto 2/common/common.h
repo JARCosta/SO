@@ -1,5 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
+#define CLIENT_NAME_SIZE 40
+
 
 /* tfs_open flags */
 enum {
@@ -18,5 +20,9 @@ enum {
     TFS_OP_CODE_READ = 6,
     TFS_OP_CODE_SHUTDOWN_AFTER_ALL_CLOSED = 7
 };
+
+typedef struct{
+    char client_pipe_path[CLIENT_NAME_SIZE];
+} mount;
 
 #endif /* COMMON_H */
