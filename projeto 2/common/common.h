@@ -25,4 +25,15 @@ typedef struct{
     char client_pipe_name[CLIENT_NAME_SIZE];
 } mount_struct;
 
+typedef struct{
+    int session_id;
+} unmount_struct;
+
+typedef struct{
+    int session_id;
+    char name[40];
+    int flag;
+} open_struct;
+
+
 #endif /* COMMON_H */

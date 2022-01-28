@@ -21,22 +21,24 @@ int main(int argc, char **argv) {
             return -1;
         }
     }
-    printf("SERVER: opening server pipe\n");
     int server_id = open(pipename, O_RDONLY);
-    printf("SERVER: server pipe opened\n");
+//    printf("SERVER: server pipe opened\n");
+    
     session session_list[MAX_SESSIONS];
     int free_sessions[MAX_SESSIONS] = {FREE};
-    char buffer[BUFFER_SIZE];
-    char op_code;
-    char client_name[40] = {'\0'};
-    int session_id;
-    int a;
+    int opened_files[1024] = {-1};
+    int opened_files_owners[1024];
 
+    int a;
     while(1){
+        if (a > 0) printf("***\n");
+        char op_code;
         if(a = read(server_id, &op_code, sizeof(char)) > 0){
             printf("SERVER: read op_code %c\n",op_code);
 
             if(op_code == '1'){
+                int session_id;
+                char client_name[40] = {'\0'};
 
                 if(read(server_id, &client_name, 40 * sizeof(char)) == -1){
                     printf("ERROR: reading client name\n");
@@ -63,22 +65,40 @@ int main(int argc, char **argv) {
                     return -1;
                 }
                 session_list[session_id].client_pipe = return_pipe;
-                if(write(return_pipe, &session_id, sizeof(int)) == 0){
+                printf("SERVER: writing session _id...\n");
+                int written = write(return_pipe, &session_id, sizeof(int));
+                printf("SERVER: wrote session_id = %d\n", session_id);
+                if(written <= 0){
                     printf("ERROR: writing\n");
                 }
-                printf("SERVER: wrote %d", session_id);
             } else if(op_code == '2'){
-
-                /*
-                char* session_id;
-                int i = 0;
-                for(i = 1; i < strlen(buffer); i++){
-                    session_id = buffer[i];
-                    session_id++;
+                int client_session;
+                if(read(server_id, &client_session, sizeof(int)) == -1){
+                    printf("ERROR: reading client name\n");
                 }
-                while(i > 0)session_id--;
-                */
+                printf("SERVER: client session: %d\n", client_session);
+                
+                free_sessions[client_session] = FREE;
+                printf("SERVER: client session %d closed, state: %d\n", client_session, free_sessions[client_session]);
+                
+                if (close(session_list[client_session].client_pipe) == -1){
+                    printf("ERROR: couldnt close client pipe\n");
+                    return -1;
+                }
             } else if(op_code == '3'){
+
+                open_struct input;
+                read(server_id, &input, sizeof(open_struct));
+                int i = 0;
+                while(opened_files[i] != -1 && i < 1024) i++;
+                if(opened_files[i] != -1) // wait till can open file
+                opened_files[i] = tfs_open(input.name,input.flag);
+                opened_files_owners[i] = input.session_id;
+
+                session temp = session_list[input.session_id];
+                int return_pipe = open(temp.client_pipe, O_WRONLY);
+
+                //write(return_pipe, &fd, sizeof(int));
 
             } else if(op_code == '4'){
 
