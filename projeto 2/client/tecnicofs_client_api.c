@@ -105,18 +105,20 @@ int tfs_unmount() {
     return 0;
 }
 
-    int send_message_to_server(int op_code, void* input_struct, ssize_t size_of_struct){
-        void* message_to_server = malloc(sizeof(char) + size_of_struct);
-        
-        // send op_code
-        char op_code = '0' + TFS_OP_CODE_UNMOUNT;
-        memcpy(message_to_server, &op_code, sizeof(char));
-        
-        // send input_structure
-        memcpy(message_to_server + sizeof(int), input_struct, sizeof(open_struct));
+int send_message_to_server(int op_code, void* input_struct, ssize_t size_of_struct){
+    
+    void* message_to_server = malloc(sizeof(char) + size_of_struct);
+    
 
-        return 0;
-    }
+    char op_code = '0' + TFS_OP_CODE_UNMOUNT;
+    memcpy(message_to_server, &op_code, sizeof(char));
+    memcpy(message_to_server + sizeof(int), input_struct, sizeof(open_struct));
+
+    write(server_pipe, message_to_server, sizeof(message_to_server));
+//    write(server_pipe, message_to_server, strlen(message_to_server));
+
+    return 0;
+}
 
 int mem_set_and_cpy(void* element_in_struct,char car, ssize_t size, char* string){
     memset(element_in_struct, car, size);
@@ -128,22 +130,14 @@ int mem_set_and_cpy(void* element_in_struct,char car, ssize_t size, char* string
 int tfs_open(char const *name, int flags) {
     /* TODO: Implement this */
 
-//    void* message_to_server = malloc(sizeof(char) + (40 * sizeof(char)) + sizeof(int));
-    
-//    memcpy(message_to_server, &op_code, sizeof(char));
-
     open_struct input;
     input.flag = flags;
     input.session_id = session_id;
     mem_set_and_cpy(&input.name, '\0', 40, name);
-//    memset(&input.name,'\0',  sizeof(char) * 40);
-//    memcpy(&input.name, name, strlen(name) * sizeof(char));
-
-//    memcpy(message_to_server + sizeof(int), &input, sizeof(open_struct));
 
     send_message_to_server(TFS_OP_CODE_OPEN,&input,sizeof(input));
 
-    read(server_pipe, buffer, sizeof(buffer));
+//    read(server_pipe, buffer, sizeof(buffer));
 
     receive_message_from_server();
 
