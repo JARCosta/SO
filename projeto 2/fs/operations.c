@@ -119,13 +119,17 @@ static int _tfs_open_unsynchronized(char const *name, int flags) {
 }
 
 int tfs_open(char const *name, int flags) {
-    if (pthread_mutex_lock(&single_global_lock) != 0)
+    if (pthread_mutex_lock(&single_global_lock) != 0){
+        printf("SERVER: failed to lock\n");
         return -1;
+    }
     int ret = _tfs_open_unsynchronized(name, flags);
     number_of_open_files++;
-    if (pthread_mutex_unlock(&single_global_lock) != 0)
+    if (pthread_mutex_unlock(&single_global_lock) != 0){
+        printf("SERVER: failed to unlock\n");
         return -1;
-
+    }
+    printf("SERVER: new fhandle: %d\n", ret);
     return ret;
 }
 

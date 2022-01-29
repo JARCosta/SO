@@ -2,6 +2,14 @@
 #define COMMON_H
 #define CLIENT_NAME_SIZE 40
 
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 
 /* tfs_open flags */
 enum {
@@ -31,9 +39,26 @@ typedef struct{
 
 typedef struct{
     int session_id;
-    char name[40];
+    char name[CLIENT_NAME_SIZE];
     int flag;
 } open_struct;
+
+typedef struct{
+    int session_id;
+    int fhandle;
+} close_struct;
+
+typedef struct {
+    int session_id;
+    int fhandle;
+    char *str;
+    size_t len;
+} write_struct;
+
+typedef struct {
+    int session_id;
+} read_struct;
+
 
 
 #endif /* COMMON_H */

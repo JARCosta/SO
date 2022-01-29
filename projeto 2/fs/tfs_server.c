@@ -4,6 +4,17 @@
 #define FREE 0
 #define TAKEN 1
 
+session session_list[MAX_SESSIONS];
+int free_sessions[MAX_SESSIONS] = {FREE};
+int opened_files_owners[1024] = {-1};
+
+int return_to_client(int session_id, void* buffer, size_t size){
+    //session temp = session_list[session_id];
+    //int return_pipe = open(temp.client_pipe, O_WRONLY);
+    write(session_list[session_id].client_pipe, &buffer, size);
+    return 0;
+}
+
 int main(int argc, char **argv) {
 
     if (argc < 2) {
@@ -21,26 +32,22 @@ int main(int argc, char **argv) {
             return -1;
         }
     }
-    int server_id = open(pipename, O_RDONLY);
+    int server_pipe = open(pipename, O_RDONLY);
 //    printf("SERVER: server pipe opened\n");
     
-    session session_list[MAX_SESSIONS];
-    int free_sessions[MAX_SESSIONS] = {FREE};
-    int opened_files[1024] = {-1};
-    int opened_files_owners[1024];
 
     int a;
     while(1){
         if (a > 0) printf("***\n");
         char op_code;
-        if(a = read(server_id, &op_code, sizeof(char)) > 0){
+        if(a = read(server_pipe, &op_code, sizeof(char)) > 0){
             printf("SERVER: read op_code %c\n",op_code);
 
             if(op_code == '1'){
                 int session_id;
                 char client_name[40] = {'\0'};
 
-                if(read(server_id, &client_name, 40 * sizeof(char)) == -1){
+                if(read(server_pipe, &client_name, 40 * sizeof(char)) == -1){
                     printf("ERROR: reading client name\n");
                 }
                 printf("SERVER: client name: %s\n", client_name);
@@ -73,7 +80,7 @@ int main(int argc, char **argv) {
                 }
             } else if(op_code == '2'){
                 int client_session, error;
-                if(read(server_id, &client_session, sizeof(int)) == -1){
+                if(read(server_pipe, &client_session, sizeof(int)) == -1){
                     printf("ERROR: reading client name\n");
                 }
                 printf("SERVER: client session: %d\n", client_session);
@@ -93,22 +100,42 @@ int main(int argc, char **argv) {
             } else if(op_code == '3'){
                 
                 open_struct input;
-                read(server_id, &input, sizeof(open_struct));
+                read(server_pipe, &input, sizeof(open_struct));
+                printf("SERVER: name: %s, flag: %d, session_id: %d\n", 
+                input.name, input.flag, input.session_id);
+                int buffer = tfs_open(input.name,input.flag);
+                opened_files_owners[buffer] = input.session_id;
+                printf("SERVER: file opened: %d\n", buffer);
+                /*
                 int i = 0;
                 while(opened_files[i] != -1 && i < 1024) i++;
                 if(opened_files[i] != -1) // wait till can open file
                 opened_files[i] = tfs_open(input.name,input.flag);
                 opened_files_owners[i] = input.session_id;
-
-                session temp = session_list[input.session_id];
-                int return_pipe = open(temp.client_pipe, O_WRONLY);
-
-                //write(return_pipe, &fd, sizeof(int));
-
+                */
+                write(session_list[input.session_id].client_pipe, &buffer, sizeof(buffer));
             } else if(op_code == '4'){
-                
-            } else if(op_code == '5'){
 
+                close_struct input;
+                read(server_pipe, &input, sizeof(close_struct));
+                
+                int owner_flag;
+                if(input.session_id != opened_files_owners[input.session_id]){
+                    printf("SERVER: %d is being closed by %d, not the owner\n", input.fhandle, input.session_id);
+                    owner_flag = 1;
+                }
+                
+                int buffer = tfs_close(input.fhandle);
+                write(session_list[input.session_id].client_pipe, &buffer, sizeof(buffer));
+            } else if(op_code == '5'){
+                write_struct input;
+                printf("SERVER: reading input...\n");
+                read(server_pipe, &input, sizeof(write_struct));
+                printf("SERVER: input read\n");
+                ssize_t written;
+                written = tfs_write(input.fhandle, input.str, input.len);
+                printf("SERVER: written %d in %d\n", (int)written, input.fhandle);
+                write(session_list[input.session_id].client_pipe, &written, sizeof(ssize_t));
             } else if(op_code == '6'){
 
             }

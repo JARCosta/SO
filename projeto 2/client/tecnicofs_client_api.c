@@ -7,7 +7,6 @@ char *client_pipe_name;
 //void* message_to_server;
 
 int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
-    /* TODO: Implement this */
 
     unlink(client_pipe_path);
 
@@ -68,7 +67,6 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
 }
 
 int tfs_unmount() {
-    /* TODO: Implement this */
     printf("CLIENT: unmounting\n");
     
     void* message_to_server = malloc(sizeof(char) + sizeof(unmount_struct));
@@ -89,77 +87,107 @@ int tfs_unmount() {
     }
     printf("CLIENT: wrote %d to server\n", x);
 
-    if (close(server_pipe) == -1){
-        printf("ERROR: Couldn't close client pipe.\n");
-        return -1;
-    }
+    int error;
+    int red = -1;
+
+    while (red == -1) red = read(server_pipe, &error, sizeof(int));
     
-    if (close(client_pipe) == -1){
-        printf("ERROR: Couldn't close client pipe.\n");
-        return -1;
+    if (error == 1){    
+        if (close(server_pipe) == -1){
+            printf("ERROR: Couldn't close client pipe.\n");
+            return -1;
+        }
+        
+        if (close(client_pipe) == -1){
+            printf("ERROR: Couldn't close client pipe.\n");
+            return -1;
+        }
+        if (unlink(client_pipe_name) == -1){
+            printf("ERROR: Couldn't unmount client session.\n");
+            return -1;
+        }
     }
-    if (unlink(client_pipe_name) == -1){
-        printf("ERROR: Couldn't unmount client session.\n");
-        return -1;
-    }
+
     return 0;
 }
 
-int send_message_to_server(int op_code, void* input_struct, ssize_t size_of_struct){
+int send_message_to_server(int op_code, void* input_struct, size_t size_of_struct){
     
-    void* message_to_server = malloc(sizeof(char) + size_of_struct);
-    
-
-    char op_code = '0' + TFS_OP_CODE_UNMOUNT;
-    memcpy(message_to_server, &op_code, sizeof(char));
-    memcpy(message_to_server + sizeof(int), input_struct, sizeof(open_struct));
-
-    write(server_pipe, message_to_server, sizeof(message_to_server));
+    size_t message_size = sizeof(char) + size_of_struct;
+    void* message_to_server = malloc(message_size);
+    printf("CLIENT: sizeof struct: %d\n", (int)message_size);
+    char op_char = '0' + op_code;
+    memcpy(message_to_server, &op_char, sizeof(char));
+    memcpy(message_to_server + sizeof(char), input_struct, size_of_struct);
+    write(server_pipe, message_to_server, message_size);
 //    write(server_pipe, message_to_server, strlen(message_to_server));
-
     return 0;
 }
 
-int mem_set_and_cpy(void* element_in_struct,char car, ssize_t size, char* string){
+int mem_set_and_cpy(void* element_in_struct,char car, size_t size, char* string){
     memset(element_in_struct, car, size);
     memcpy(element_in_struct, string, strlen(string));
     return 0;
 }
 
-
 int tfs_open(char const *name, int flags) {
-    /* TODO: Implement this */
 
     open_struct input;
     input.flag = flags;
     input.session_id = session_id;
     mem_set_and_cpy(&input.name, '\0', 40, name);
+    printf("CLIENT: file name: %s, flag: %d\n", name, input.flag);
 
+    printf("CLIENT: sending input...\n");
     send_message_to_server(TFS_OP_CODE_OPEN,&input,sizeof(input));
-
-//    read(server_pipe, buffer, sizeof(buffer));
-
-    receive_message_from_server();
-
-    return 0;
+    printf("CLIENT: input sent\n");
+    int buffer;
+    printf("CLIENT: reading from client pipe...\n");
+    read(client_pipe, &buffer, sizeof(int));
+    printf("CLIENT: fhandle received: %d\n", buffer);
+    return buffer;
 }
 
 int tfs_close(int fhandle) {
-    /* TODO: Implement this */
-    return -1;
+    
+    close_struct input;
+    input.session_id = session_id;
+    input.fhandle = fhandle;
+    printf("CLIENT: fhandle: %d\n", fhandle);
+
+    printf("CLIENT: sending input...\n");
+    send_message_to_server(TFS_OP_CODE_CLOSE,&input,sizeof(input));
+    printf("CLIENT: input sent\n");
+
+    int buffer;
+    printf("CLIENT: reading from client pipe...\n");
+    read(client_pipe, &buffer, sizeof(int));
+    printf("CLIENT: read: %d\n", buffer);
+    return buffer;
 }
 
 ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
-    /* TODO: Implement this */
-    return -1;
+    write_struct input;
+    input.fhandle = fhandle;
+    input.session_id = session_id;
+    input.str = buffer;
+    input.len = len;
+    printf("CLIENT: sending input...\n");
+    send_message_to_server(TFS_OP_CODE_WRITE, &input, sizeof(input));
+    printf("CLIENT: input sent: fhandle: %d, session_id: %d, str: %p, length: %d\n", 
+    fhandle, session_id, buffer, (int)len);
+
+    ssize_t written;
+    printf("CLIENT: reading from client pipe...\n");
+    written = read(client_pipe, &written, sizeof(ssize_t));
+    printf("CLIENT: written %d in file\n", (int)written);
+    return written;
 }
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
-    /* TODO: Implement this */
     return -1;
 }
 
 int tfs_shutdown_after_all_closed() {
-    /* TODO: Implement this */
     return -1;
 }
