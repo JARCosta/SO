@@ -72,21 +72,26 @@ int main(int argc, char **argv) {
                     printf("ERROR: writing\n");
                 }
             } else if(op_code == '2'){
-                int client_session;
+                int client_session, error;
                 if(read(server_id, &client_session, sizeof(int)) == -1){
                     printf("ERROR: reading client name\n");
                 }
                 printf("SERVER: client session: %d\n", client_session);
                 
                 free_sessions[client_session] = FREE;
-                printf("SERVER: client session %d closed, state: %d\n", client_session, free_sessions[client_session]);
                 
                 if (close(session_list[client_session].client_pipe) == -1){
                     printf("ERROR: couldnt close client pipe\n");
+                    free_sessions[client_session] = TAKEN;
+                    error = -1;
+                    write(session_list[client_session].client_pipe, &error, sizeof(int));
                     return -1;
                 }
+                error = 1;
+                write(session_list[client_session].client_pipe, &error, sizeof(int));
+                printf("SERVER: client session %d closed, state: %d\n", client_session, free_sessions[client_session]);
             } else if(op_code == '3'){
-
+                
                 open_struct input;
                 read(server_id, &input, sizeof(open_struct));
                 int i = 0;
@@ -101,7 +106,7 @@ int main(int argc, char **argv) {
                 //write(return_pipe, &fd, sizeof(int));
 
             } else if(op_code == '4'){
-
+                
             } else if(op_code == '5'){
 
             } else if(op_code == '6'){
