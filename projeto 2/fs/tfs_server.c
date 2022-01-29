@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
             return -1;
         }
     }
+    if(tfs_init() == -1) return -1;
     int server_pipe = open(pipename, O_RDONLY);
 //    printf("SERVER: server pipe opened\n");
     
@@ -128,10 +129,14 @@ int main(int argc, char **argv) {
                 int buffer = tfs_close(input.fhandle);
                 write(session_list[input.session_id].client_pipe, &buffer, sizeof(buffer));
             } else if(op_code == '5'){
+                size_t input_size;
                 write_struct input;
+                read(server_pipe, &input_size, sizeof(size_t));
+                printf("SERVER: input size: %d\n", (int)input_size);
                 printf("SERVER: reading input...\n");
-                read(server_pipe, &input, sizeof(write_struct));
-                printf("SERVER: input read\n");
+                read(server_pipe, &input, input_size);
+                printf("SERVER: input read, session_id: %d, fhandle: %d, str: %s, len: %d\n", 
+                input.session_id, input.fhandle, input.str, (int)input.len);
                 ssize_t written;
                 written = tfs_write(input.fhandle, input.str, input.len);
                 printf("SERVER: written %d in %d\n", (int)written, input.fhandle);

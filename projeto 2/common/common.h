@@ -51,8 +51,8 @@ typedef struct{
 typedef struct {
     int session_id;
     int fhandle;
-    char *str;
     size_t len;
+    char *str;
 } write_struct;
 
 typedef struct {
