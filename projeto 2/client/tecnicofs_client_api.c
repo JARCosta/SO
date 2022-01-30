@@ -78,9 +78,9 @@ int tfs_unmount() {
     input.session_id = session_id;
     memcpy(message_to_server + sizeof(char), &input, sizeof(unmount_struct));
     
-    printf("CLIENT: sending %s to server\n", (char*)message_to_server);
+    //printf("CLIENT: sending %s to server\n", (char*)message_to_server);
 
-    int x = write(server_pipe, message_to_server, strlen(message_to_server));
+    int x = write(server_pipe, message_to_server, sizeof(char) + sizeof(unmount_struct));
     if(x == -1){
         printf("ERROR: writing\n");
         return -1;
@@ -88,9 +88,8 @@ int tfs_unmount() {
     printf("CLIENT: wrote %d to server\n", x);
 
     int error;
-    int red = -1;
 
-    while (red == -1) red = read(server_pipe, &error, sizeof(int));
+    read(server_pipe, &error, sizeof(int));
     
     if (error == 1){    
         if (close(server_pipe) == -1){
@@ -114,7 +113,7 @@ int tfs_unmount() {
 int send_message_to_server(int op_code, void* input_struct, size_t size_of_struct){
     size_t message_size;
     void* message_to_server;
-    if (op_code == TFS_OP_CODE_WRITE){
+    /*if (op_code == TFS_OP_CODE_WRITE){
         message_size = sizeof(char) + sizeof(size_t) + size_of_struct;
         message_to_server = malloc(message_size);
         printf("CLIENT: sizeof struct: %d\n", (int)size_of_struct);
@@ -123,15 +122,16 @@ int send_message_to_server(int op_code, void* input_struct, size_t size_of_struc
         memcpy(message_to_server + sizeof(char), &size_of_struct, sizeof(size_t));
         memcpy(message_to_server + sizeof(size_t) + sizeof(char), input_struct, size_of_struct);
         printf("CLIENT: message: %s\n", (char*)message_to_server);
-    }
-    else{
+    }*/
+    //else{
         message_size = sizeof(char) + size_of_struct;
         message_to_server = malloc(message_size);
         printf("CLIENT: sizeof struct: %d\n", (int)message_size);
         char op_char = '0' + op_code;
         memcpy(message_to_server, &op_char, sizeof(char));
         memcpy(message_to_server + sizeof(char), input_struct, size_of_struct);
-    }
+
+    //}
     write(server_pipe, message_to_server, message_size);
 //    write(server_pipe, message_to_server, strlen(message_to_server));
     return 0;
@@ -187,13 +187,23 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
     write_struct input;
     input.fhandle = fhandle;
     input.session_id = session_id;
-    input.str = buffer;
     input.len = len;
-    //mudar a o buffer para buffer[len];
+
+    size_t message_size = sizeof(char) + sizeof(write_struct) + len;
+    void *message = malloc(message_size);
+
+    char op_char = '0' + TFS_OP_CODE_WRITE;
+    memcpy(message, &op_char, sizeof(char));
+    memcpy(message + sizeof(char), &input, sizeof(write_struct));
+    memcpy(message + sizeof(char) + sizeof(write_struct), buffer, len);
     printf("CLIENT: sending input...\n");
-    send_message_to_server(TFS_OP_CODE_WRITE, &input, sizeof(input));
+    write(server_pipe, message, message_size);
+    //mudar a o buffer para buffer[len];
+    //send_message_to_server(TFS_OP_CODE_WRITE, &input, message_size);
+
     printf("CLIENT: input sent: fhandle: %d, session_id: %d, str: %s, length: %d\n", 
-    fhandle, session_id, buffer, (int)len);
+    input.fhandle, input.session_id, (char*)buffer, (int)input.len);
+    
 
     ssize_t written;
     printf("CLIENT: reading from client pipe...\n");
@@ -204,7 +214,21 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     printf("CLIENT: tfs_read\n");
-    return -1;
+    
+    read_struct input;
+    input.fhandle = fhandle;
+    input.session_id = session_id;
+    input.len = len;
+    printf("CLIENT: len = %d\n", (int)len);
+
+    printf("CLIENT: sending input...\n");
+    send_message_to_server(TFS_OP_CODE_READ, &input, sizeof(input));
+
+    printf("CLIENT: reading from client pipe...\n");
+    size_t red = read(client_pipe, buffer, len);
+    printf("CLIENT: read %d from file\n", (int)red);
+
+    return strlen(buffer);
 }
 
 int tfs_shutdown_after_all_closed() {

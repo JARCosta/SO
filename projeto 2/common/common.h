@@ -52,11 +52,12 @@ typedef struct {
     int session_id;
     int fhandle;
     size_t len;
-    char *str;
 } write_struct;
 
 typedef struct {
     int session_id;
+    int fhandle;
+    size_t len;
 } read_struct;
 
 
