@@ -101,6 +101,7 @@ int tfs_unmount() {
             printf("ERROR: Couldn't close client pipe.\n");
             return -1;
         }
+        
         if (unlink(client_pipe_name) == -1){
             printf("ERROR: Couldn't unmount client session.\n");
             return -1;
@@ -149,7 +150,7 @@ int tfs_open(char const *name, int flags) {
     open_struct input;
     input.flag = flags;
     input.session_id = session_id;
-    mem_set_and_cpy(&input.name, '\0', 40, name);
+    mem_set_and_cpy(&input.name, '\0', CLIENT_NAME_SIZE, name);
     printf("CLIENT: file name: %s, flag: %d\n", name, input.flag);
 
     printf("CLIENT: sending input...\n");

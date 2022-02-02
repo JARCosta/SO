@@ -4,6 +4,9 @@
 #include "common/common.h"
 #include "config.h"
 #include "state.h"
+#include "pthread.h"
+#include "stdlib.h"
+#include "stdio.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -14,6 +17,10 @@
 typedef struct{
     char const *client_path_name;
     int client_pipe;
+    void *buffer;
+    pthread_mutex_t lock;
+    pthread_t thread;
+    pthread_cond_t var;
 } session;
 
 /*

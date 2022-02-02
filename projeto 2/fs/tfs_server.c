@@ -15,6 +15,11 @@ int return_to_client(int session_id, void* buffer, size_t size){
     return 0;
 }
 
+int thread_func(){
+    return -1;
+}
+
+
 int main(int argc, char **argv) {
 
     if (argc < 2) {
@@ -33,9 +38,13 @@ int main(int argc, char **argv) {
         }
     }
     if(tfs_init() == -1) return -1;
+    for (int i; i < MAX_SESSIONS; i++){
+        pthread_create(&session_list[i].thread, NULL, &write, NULL);
+        pthread_cond_init(&session_list[i].var, NULL);
+    }
+
     int server_pipe = open(pipename, O_RDONLY);
 //    printf("SERVER: server pipe opened\n");
-    
 
     int a;
     while(1){
