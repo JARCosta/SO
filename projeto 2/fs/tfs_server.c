@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
                 written = tfs_write(input.fhandle, &buffer, input.len + 1);
                 written -= 1;
                 size_t size = write(session_list[input.session_id].client_pipe, &written, sizeof(ssize_t));
-                printf("\t wrote %d B\n", size);
+                printf("\t wrote %d B\n", written);
             
             } else if(op_code == '6'){
                 printf("TFS_READ:\n");
