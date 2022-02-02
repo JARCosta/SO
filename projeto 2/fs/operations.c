@@ -129,7 +129,7 @@ int tfs_open(char const *name, int flags) {
         printf("ERROR: failed to unlock\n");
         return -1;
     }
-    printf("\t created fd %d\n", ret);
+    printf("\t new fd %d\n", ret);
     return ret;
 }
 
