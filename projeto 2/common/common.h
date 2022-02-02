@@ -29,32 +29,32 @@ enum {
     TFS_OP_CODE_SHUTDOWN_AFTER_ALL_CLOSED = 7
 };
 
-typedef struct{
+typedef struct __attribute__((__packed__)){
     char client_pipe_name[CLIENT_NAME_SIZE];
 } mount_struct;
 
-typedef struct{
+typedef struct __attribute__((__packed__)){
     int session_id;
 } unmount_struct;
 
-typedef struct{
+typedef struct __attribute__((__packed__)){
     int session_id;
     char name[CLIENT_NAME_SIZE];
     int flag;
 } open_struct;
 
-typedef struct{
+typedef struct __attribute__((__packed__)){
     int session_id;
     int fhandle;
 } close_struct;
 
-typedef struct {
+typedef struct __attribute__((__packed__)){
     int session_id;
     int fhandle;
     size_t len;
 } write_struct;
 
-typedef struct {
+typedef struct __attribute__((__packed__)){
     int session_id;
     int fhandle;
     size_t len;
