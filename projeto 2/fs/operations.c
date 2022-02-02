@@ -120,16 +120,16 @@ static int _tfs_open_unsynchronized(char const *name, int flags) {
 
 int tfs_open(char const *name, int flags) {
     if (pthread_mutex_lock(&single_global_lock) != 0){
-        printf("\t failed to lock\n");
+        printf("ERROR: failed to lock\n");
         return -1;
     }
     int ret = _tfs_open_unsynchronized(name, flags);
     number_of_open_files++;
     if (pthread_mutex_unlock(&single_global_lock) != 0){
-        printf("\t failed to unlock\n");
+        printf("ERROR: failed to unlock\n");
         return -1;
     }
-    printf("\t new fhandle: %d\n", ret);
+    printf("\t created fd %d\n", ret);
     return ret;
 }
 
