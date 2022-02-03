@@ -78,6 +78,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     }
 
     size_t red = read(client_pipe, &session_id, sizeof(int));
+    if (session_id == -1) return -1;
     printf("\t pipe path: %s\n\t session_id: %d\n", input.client_pipe_name, session_id);
     return 0;
 }
@@ -226,7 +227,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     send_message_to_server(TFS_OP_CODE_READ, &input, sizeof(input));
 
     size_t red = read(client_pipe, buffer, len);
-    printf("\t read %d B\n", (int)red);
+    printf("\t read %d B, %s\n", (int)red, buffer);
 
     return strlen(buffer);
 }

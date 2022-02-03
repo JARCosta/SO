@@ -17,6 +17,7 @@
 typedef struct{
     char const *client_path_name;
     int client_pipe;
+    char op_code;
     void *buffer;
     pthread_mutex_t lock;
     pthread_t thread;
