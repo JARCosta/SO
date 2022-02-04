@@ -127,18 +127,15 @@ void* thread_func(void *session_void){
     int session_id = *(int*)session_void;
     while(1) {
         printf(" %d\t sleeping\n", session_id);
-        pthread_mutex_lock(&session_list[session_id].lock);
-        pthread_mutex_unlock(&server_thread_lock);
-        pthread_cond_wait(&session_list[session_id].var, &session_list[session_id].lock);
-        pthread_mutex_unlock(&session_list[session_id].lock);
+        if (pthread_mutex_lock(&session_list[session_id].lock) != 0) return;
+        if (pthread_mutex_unlock(&server_thread_lock) != 0) return;
+        if (pthread_cond_wait(&session_list[session_id].var, &session_list[session_id].lock) != 0) return;
+        if (pthread_mutex_unlock(&session_list[session_id].lock) != 0) return;
         printf(" %d\t awake\n", session_id);
 
         char op_char = session_list[session_id].op_code;
 
-        if (op_char == '1'){
-            
-        }
-        else if(op_char == '2'){
+        if(op_char == '2'){
             thread_unmount(session_id);
         }
         else if(op_char == '3'){
@@ -178,12 +175,12 @@ int main(int argc, char **argv) {
         }
     }
     if(tfs_init() == -1) return -1;
-    pthread_mutex_init(&server_thread_lock, NULL);
+    if (pthread_mutex_init(&server_thread_lock, NULL) != 0) return -1;
     for (int i = 0; i < MAX_SESSIONS; i++){
-        pthread_mutex_lock(&server_thread_lock);
-        pthread_cond_init(&session_list[i].var, NULL);
-        pthread_mutex_init(&session_list[i].lock, NULL);
-        pthread_create(&session_list[i].thread, NULL, &thread_func, (void*)&i);
+        if (pthread_mutex_lock(&server_thread_lock) != 0) return -1;
+        if (pthread_cond_init(&session_list[i].var, NULL) != 0) return -1;
+        if (pthread_mutex_init(&session_list[i].lock, NULL) != 0) return -1;
+        if (pthread_create(&session_list[i].thread, NULL, &thread_func, (void*)&i) != 0) return -1;
         printf(" %d\t created\n", i);
     }
 
@@ -209,7 +206,7 @@ int main(int argc, char **argv) {
                 
                 session_list[input.session_id].op_code = '2';
 
-                pthread_cond_signal(&session_list[input.session_id].var);
+                if (pthread_cond_signal(&session_list[input.session_id].var) != 0) return -1;
             
             } else if(op_code == '3'){
                 printf("TFS_OPEN:\n");
@@ -221,7 +218,7 @@ int main(int argc, char **argv) {
                 memcpy(session_list[input.session_id].buffer, &input, sizeof(open_struct));
                 session_list[input.session_id].op_code = '3';
 
-                pthread_cond_signal(&session_list[input.session_id].var);
+                if (pthread_cond_signal(&session_list[input.session_id].var) != 0) return -1;
                 printf("\t session id: %d\n", input.session_id);
             
             } else if(op_code == '4'){
@@ -234,7 +231,7 @@ int main(int argc, char **argv) {
                 memcpy(session_list[input.session_id].buffer, &input, sizeof(close_struct));
                 session_list[input.session_id].op_code = '4';
 
-                pthread_cond_signal(&session_list[input.session_id].var);
+                if (pthread_cond_signal(&session_list[input.session_id].var) != 0) return -1;
             
             } else if(op_code == '5'){
                 printf("TFS_WRITE:\n");
@@ -252,7 +249,7 @@ int main(int argc, char **argv) {
                 memcpy(session_list[input.session_id].buffer + sizeof(write_struct), &buffer, input.len);
                 session_list[input.session_id].op_code = '5';
 
-                pthread_cond_signal(&session_list[input.session_id].var);
+                if (pthread_cond_signal(&session_list[input.session_id].var) != 0) return -1;
                 printf("\t session id: %d\n", input.session_id);
             
             } else if(op_code == '6'){
@@ -265,7 +262,7 @@ int main(int argc, char **argv) {
                 memcpy(session_list[input.session_id].buffer, &input, sizeof(read_struct));
                 session_list[input.session_id].op_code = '6';
 
-                pthread_cond_signal(&session_list[input.session_id].var);
+                if (pthread_cond_signal(&session_list[input.session_id].var) != 0) return -1;
             
             }else if(op_code == '7'){
 
@@ -275,7 +272,7 @@ int main(int argc, char **argv) {
 
                 session_list[session_id].op_code = '7';
 
-                pthread_cond_signal(&session_list[session_id].var);
+                if (pthread_cond_signal(&session_list[session_id].var) != 0) return -1;
             }
         }
     }

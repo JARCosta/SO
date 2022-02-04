@@ -29,6 +29,8 @@ enum {
     TFS_OP_CODE_SHUTDOWN_AFTER_ALL_CLOSED = 7
 };
 
+//  Criamos as struct com __attribute__((__packed__)) para excluirmos problemas de padding na escrita e leitura das mesmas.
+
 typedef struct __attribute__((__packed__)){
     char client_pipe_name[CLIENT_NAME_SIZE];
 } mount_struct;
