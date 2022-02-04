@@ -6,9 +6,16 @@
 #include <string.h>
 
 static pthread_mutex_t single_global_lock;
+int number_of_open_files;
+pthread_mutex_t destroy_lock;
+pthread_cond_t cond;
+
 
 int tfs_init() {
     state_init();
+    number_of_open_files = 0;
+    pthread_cond_init(&cond,NULL);
+    pthread_mutex_init(&destroy_lock, NULL);
 
     if (pthread_mutex_init(&single_global_lock, 0) != 0)
         return -1;

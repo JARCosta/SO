@@ -69,9 +69,6 @@ static void insert_delay() {
  * Initializes FS state
  */
 void state_init() {
-    number_of_open_files = 0;
-    pthread_cond_init(&cond,NULL);
-    pthread_mutex_init(&destroy_lock, NULL);
     
     for (size_t i = 0; i < INODE_TABLE_SIZE; i++) {
         freeinode_ts[i] = FREE;
