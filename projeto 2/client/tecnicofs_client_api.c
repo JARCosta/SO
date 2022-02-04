@@ -13,7 +13,7 @@ int send_message_to_server(int op_code, void* input, size_t size_of_input){
     void* message_to_server;
         message_size = sizeof(char) + size_of_input;
         message_to_server = malloc(message_size);
-        char op_char = '0' + op_code;
+        char op_char = (char)('0' + op_code);
         memcpy(message_to_server, &op_char, sizeof(char));
         memcpy(message_to_server + sizeof(char), input, size_of_input);
     if(-1 == write(server_pipe, message_to_server, message_size)) return -1;
