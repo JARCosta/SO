@@ -22,9 +22,9 @@ static char free_blocks[DATA_BLOCKS];
 
 static open_file_entry_t open_file_table[MAX_OPEN_FILES];
 static char free_open_file_entries[MAX_OPEN_FILES];
-int number_of_open_files;
-pthread_mutex_t destroy_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+//int number_of_open_files;
+//pthread_mutex_t destroy_lock = PTHREAD_MUTEX_INITIALIZER;
+//pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 static inline bool valid_inumber(int inumber) {
     return inumber >= 0 && inumber < INODE_TABLE_SIZE;
@@ -70,6 +70,8 @@ static void insert_delay() {
  */
 void state_init() {
     number_of_open_files = 0;
+    pthread_cond_init(&cond,NULL);
+    pthread_mutex_init(&destroy_lock, NULL);
     
     for (size_t i = 0; i < INODE_TABLE_SIZE; i++) {
         freeinode_ts[i] = FREE;
