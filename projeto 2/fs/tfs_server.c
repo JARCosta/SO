@@ -125,7 +125,6 @@ void thread_destroy_after_all_closed(int session_id){
 
 void* thread_func(void *session_void){
     int session_id = *(int*)session_void;
-    session_id -= 1;
     while(1) {
         printf(" %d\t sleeping\n", session_id);
         pthread_mutex_lock(&session_list[session_id].lock);
