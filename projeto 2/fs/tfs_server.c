@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
         if (a > 0){
             if(op_code == '1'){
                 
-                thread_mount();     //comentar o porque de nao dar thread nisto
+                thread_mount();     //Optamos por nao utilizar threads no mount visto que achamos que nao seria necessario
 
             } else if(op_code == '2'){
                 printf("TFS_UNMOUNT:\n");
